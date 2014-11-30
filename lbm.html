@@ -97,11 +97,18 @@
  
 				float feq9 = t1*density*(1. - usqu/(2.*c_squ));
 
+				if ( vUv.x < 0.6 && vUv.x > 0.5 && vUv.y > 0.5 && vUv.y < 0.6 ) {
+					
+					gl_FragColor = vec4(f1, f2, f3, 1.);
+				} 	else {
+
 				float ff1 = omega * feq1 + (1. - omega) * f1;
 				float ff2 = omega * feq2 + (1. - omega) * f2;
 				float ff3 = omega * feq3 + (1. - omega) * f3;
-					
+
 				gl_FragColor = vec4(ff1,ff2,ff3,1.);
+				}
+
 
 			}
 
@@ -168,10 +175,14 @@
 				float ff4 = omega * feq4 + (1. - omega) * f4;
 				float ff5 = omega * feq5 + (1. - omega) * f5;
 				float ff6 = omega * feq6 + (1. - omega) * f6;
+				if ( vUv.x < 0.6 && vUv.x > 0.5 && vUv.y > 0.5 && vUv.y < 0.6 ) {
+					
+					gl_FragColor = vec4(f4, f5, f6, 1.);
+				} 	else {
 
 				gl_FragColor = vec4(ff4,ff5,ff6,1.);
-
 			}
+		}
 
 		</script>
 		<script id="fragmentCompute3" type="x-shader/x-fragment">
@@ -236,9 +247,13 @@
 				float ff7 = omega * feq7 + (1. - omega) * f7;
 				float ff8 = omega * feq8 + (1. - omega) * f8;
 				float ff9 = omega * feq9 + (1. - omega) * f9;				
+				if ( vUv.x < 0.6 && vUv.x > 0.5 && vUv.y > 0.5 && vUv.y < 0.6 ) {
+					
+					gl_FragColor = vec4(f7, f8, f9, 1.);
+				} 	else {
 
 				gl_FragColor = vec4(ff7,ff8,ff9,1.);
-
+			}
 			}
 
 		</script>				
@@ -306,9 +321,38 @@
 
 				float ux = f1+f2+f8-f4-f5-f6;
 				float uy = f2+f3+f4-f6-f7-f8;
-				float velmag = 40000.*sqrt(uy*uy);// 10.*sqrt(1.*uy*uy+1.*ux*ux);
+				float velmag = 1000.*sqrt(0.*ux*ux+1.*uy*uy);// 10.*sqrt(1.*uy*uy+1.*ux*ux);
+				float a=(1.-velmag)/0.25;	//invert and group
+				int X= int(floor(a));	//this is the integer part
+				int Y= int(floor(255.*(a-float(X)))); //fractional part from 0 to 255
+				float r,g,b;
+				if (X == 0) {
+				    r=255.;
+				    g=float(Y);
+				    b=0.;
+				} else if ( X == 1) {
+					r=255.- float(Y);
+					g=255.;
+					b=0.;
+				} else if ( X == 2) {
+				    r=0.;
+				    g=255.;
+				    b=float(Y);
+				} else if (X == 3) {
+					r=0.;
+					g=255.- float(Y);
+					b=255.;
+				} else if (X ==4 ) {
+				    r=0.;
+				    g=0.;
+				    b=255.;
+				} else {
+				    r=0.;
+				    g=0.;
+				    b=0.;
+				}
 				//if (velmag > 1.) { velmag = 1; };
-				gl_FragColor = vec4(velmag, 0,1.-velmag, 1.);
+				gl_FragColor = vec4(r/255., g/255.,b/255., 1.);
 				//gl_FragColor = vec4(velmag, 0., 1. - velmag, 1.);
 
 
@@ -391,7 +435,108 @@
 
 			}
 
-		</script>		
+		</script>	
+		<script id="fragmentInitMesh" type="x-shader/x-fragment">
+			precision highp float;
+			precision highp int;
+
+			varying vec2 vUv;
+
+
+			void main() {
+
+				if ( vUv.x < 0.6 && vUv.x > 0.5 && vUv.y > 0.5 && vUv.y < 0.6 ) {
+
+					gl_FragColor = vec4(1., 0., 0. ,1.);
+				}
+
+			}
+
+		</script>
+		<script id="fragmentBounceback1" type="x-shader/x-fragment">
+			precision highp float;
+			precision highp int;
+
+			varying vec2 vUv;
+			uniform highp sampler2D tDiffuse1;
+			uniform highp sampler2D tDiffuse2;
+			uniform highp sampler2D tDiffuse3;
+
+			void main() {
+
+				if ( vUv.x < 0.6 && vUv.x > 0.5 && vUv.y > 0.5 && vUv.y < 0.6 ) {
+					vec4 v2 = texture2D(tDiffuse2,vUv );
+					vec4 v3 = texture2D(tDiffuse3,vUv );
+					//float f4 = v2.r;
+					float f5 = v2.g;
+					float f6 = v2.b;
+					float f7 = v3.r;
+					//float f8 = v3.g;
+					//float f9 = v3.b;
+					gl_FragColor = vec4(f5, f6, f7 ,1.);
+				} else {
+					gl_FragColor = texture2D(tDiffuse1,vUv );
+				}
+
+			}
+
+		</script>
+		<script id="fragmentBounceback2" type="x-shader/x-fragment">
+			precision highp float;
+			precision highp int;
+
+			varying vec2 vUv;
+			uniform highp sampler2D tDiffuse1;
+			uniform highp sampler2D tDiffuse2;
+			uniform highp sampler2D tDiffuse3;
+
+			void main() {
+
+				if ( vUv.x < 0.6 && vUv.x > 0.5 && vUv.y > 0.5 && vUv.y < 0.6 ) {
+					vec4 v1 = texture2D(tDiffuse1,vUv );
+					vec4 v3 = texture2D(tDiffuse3,vUv );
+					//float f4 = v1.r;
+					float f8 = v3.g;
+					float f1 = v1.r;
+					float f2 = v1.g;
+					//float f8 = v3.g;
+					//float f9 = v3.b;
+					gl_FragColor = vec4(f8, f1, f2 ,1.);
+				} else {
+					gl_FragColor = texture2D(tDiffuse2,vUv );
+				}
+
+			}
+
+		</script>	
+		<script id="fragmentBounceback3" type="x-shader/x-fragment">
+			precision highp float;
+			precision highp int;
+
+			varying vec2 vUv;
+			uniform highp sampler2D tDiffuse1;
+			uniform highp sampler2D tDiffuse2;
+			uniform highp sampler2D tDiffuse3;
+
+			void main() {
+
+				if ( vUv.x < 0.6 && vUv.x > 0.5 && vUv.y > 0.5 && vUv.y < 0.6 ) {
+					vec4 v1 = texture2D(tDiffuse1,vUv );
+					vec4 v2 = texture2D(tDiffuse2,vUv );
+					//float f1 = v1.r;
+					//float f2 = v1.g;
+					float f3 = v1.b;
+					float f4 = v2.r;
+					//float f5 = v2.g;
+					//float f6 = v2.b;
+					gl_FragColor = vec4(f3, f4, texture2D(tDiffuse3,vUv).b , 1.);
+				} else {
+					gl_FragColor = texture2D(tDiffuse3,vUv );
+				}
+
+			}
+
+		</script>															
 		<script id="vertexShader" type="x-shader/x-vertex">
 			precision highp float;
 			precision highp int;
@@ -407,258 +552,8 @@
 
 		</script>
 
+		<!-- JS code (non GLSL) is in separate .js file -->
+		<script src="./js/lbm.js"> </script>
 
-		<script>
-
-			if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
-
-			var container, stats, materialCopy, materialStep, materialShow;
-
-			var cameraRTT, camera, sceneStep1, sceneStep2, sceneStep3, sceneShow, scene, renderer, zmesh1, zmesh2, sceneCopy1, sceneCopy2, sceneCopy3;
-			var sceneCompute1, sceneCompute2 , sceneCompute3  ;
-
-			var mouseX = 0, mouseY = 0;
-
-			var material, quad;
-
-			var rtTexture1, rtTexture2, rtTexture3;
-			var rtTexture1c, rtTexture2c, rtTexture3c;
-			
-
-			var delta = 0.002;
-
-			init();
-			animate();
-			//var customWindow;
-			function init() {
-
-				container = document.getElementById( 'container' );
-				customWindow = Object();
-				customWindow.innerWidth = 256;
-				customWindow.innerHeight = 256;
-				cameraRTT = new THREE.OrthographicCamera( customWindow.innerWidth / - 2, customWindow.innerWidth / 2, customWindow.innerHeight / 2, customWindow.innerHeight / - 2, -1000, 1000 );
-				cameraRTT.position.z = 100;
-
-				sceneStep1 = new THREE.Scene();
-				sceneCopy1 = new THREE.Scene();
-				sceneStep2 = new THREE.Scene();
-				sceneCopy2 = new THREE.Scene();
-				sceneStep3 = new THREE.Scene();
-				sceneCopy3 = new THREE.Scene();
-				sceneCompute1 = new THREE.Scene();
-				sceneCompute2 = new THREE.Scene();
-				sceneCompute3 = new THREE.Scene();
-				sceneShow = new THREE.Scene();
-
-				rtTexture1 = new THREE.WebGLRenderTarget( customWindow.innerWidth, customWindow.innerHeight, { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, format: THREE.RGBFormat, type: THREE.FloatType } );
-				rtTexture2 = new THREE.WebGLRenderTarget( customWindow.innerWidth, customWindow.innerHeight, { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, format: THREE.RGBFormat, type: THREE.FloatType } );
-				rtTexture3 = new THREE.WebGLRenderTarget( customWindow.innerWidth, customWindow.innerHeight, { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, format: THREE.RGBFormat, type: THREE.FloatType } );
-				rtTexture1c = new THREE.WebGLRenderTarget( customWindow.innerWidth, customWindow.innerHeight, { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, format: THREE.RGBFormat, type: THREE.FloatType } );
-				rtTexture2c = new THREE.WebGLRenderTarget( customWindow.innerWidth, customWindow.innerHeight, { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, format: THREE.RGBFormat, type: THREE.FloatType } );
-				rtTexture3c = new THREE.WebGLRenderTarget( customWindow.innerWidth, customWindow.innerHeight, { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, format: THREE.RGBFormat, type: THREE.FloatType } );
-
-				rtTexture1.wrapS = THREE.RepeatWrapping;
-				rtTexture1.wrapT = THREE.RepeatWrapping;
-				
-				rtTexture2.wrapS = THREE.RepeatWrapping;
-				rtTexture2.wrapT = THREE.RepeatWrapping;
-				
-				rtTexture3.wrapS = THREE.RepeatWrapping;
-				rtTexture3.wrapT = THREE.RepeatWrapping;
-				
-				rtTexture1c.wrapS = THREE.RepeatWrapping;
-				rtTexture1c.wrapT = THREE.RepeatWrapping;
-				
-				rtTexture2c.wrapS = THREE.RepeatWrapping;
-				rtTexture2c.wrapT = THREE.RepeatWrapping;
-				
-				rtTexture3c.wrapS = THREE.RepeatWrapping;
-				rtTexture3c.wrapT = THREE.RepeatWrapping;
-				
-				materialShow = new THREE.ShaderMaterial( {
-
-					vertexShader: document.getElementById( 'vertexShader' ).textContent,
-					fragmentShader: document.getElementById( 'fragmentShow' ).textContent,
-					uniforms: {tDiffuse1: { type: "t", value: rtTexture1c },tDiffuse2: { type: "t", value: rtTexture2c },tDiffuse3: { type: "t", value: rtTexture3c }  } }
-				);
-
-				materialCompute1 = new THREE.ShaderMaterial( {
-
-					uniforms: { tDiffuse1: { type: "t", value: rtTexture1 } , currTime: {type: "f", value:0} ,
-					tDiffuse2: { type: "t", value: rtTexture2 },
-					tDiffuse3: { type: "t", value: rtTexture3 } },
-					vertexShader: document.getElementById( 'vertexShader' ).textContent,
-					fragmentShader: document.getElementById( 'fragmentCompute1' ).textContent,
-
-				} );
-				materialCompute2 = new THREE.ShaderMaterial( {
-
-					uniforms: {tDiffuse1: { type: "t", value: rtTexture1 } , currTime: {type: "f", value:0},
-					tDiffuse2: { type: "t", value: rtTexture2 },
-					tDiffuse3: { type: "t", value: rtTexture3 } },
-					vertexShader: document.getElementById( 'vertexShader' ).textContent,
-					fragmentShader: document.getElementById( 'fragmentCompute2' ).textContent,
-
-				} );			
-				materialCompute3 = new THREE.ShaderMaterial( {
-
-					uniforms: {tDiffuse1: { type: "t", value: rtTexture1 } ,currTime: {type: "f", value:0},
-					tDiffuse2: { type: "t", value: rtTexture2 },
-					tDiffuse3: { type: "t", value: rtTexture3 } },
-					vertexShader: document.getElementById( 'vertexShader' ).textContent,
-					fragmentShader: document.getElementById( 'fragmentCompute3' ).textContent,
-
-				} );
-
-				materialStep1 = new THREE.ShaderMaterial( {
-
-					uniforms: { time: { type: "f", value: 0.0 } , dt: { type: "f", value: 0.1},
-					tDiffuse3: { type: "t", value: rtTexture1 } },
-					vertexShader: document.getElementById( 'vertexShader' ).textContent,
-					fragmentShader: document.getElementById( 'fragmentStep1' ).textContent,
-
-					depthWrite: false
-
-				} );
-				materialStep2 = new THREE.ShaderMaterial( {
-
-					uniforms: { time: { type: "f", value: 0.0 } , dt: { type: "f", value: 0.1},
-					tDiffuse3: { type: "t", value: rtTexture2 } },
-					vertexShader: document.getElementById( 'vertexShader' ).textContent,
-					fragmentShader: document.getElementById( 'fragmentStep2' ).textContent,
-
-					depthWrite: false
-
-				} );
-				materialStep3 = new THREE.ShaderMaterial( {
-
-					uniforms: { time: { type: "f", value: 0.0 } , dt: { type: "f", value: 0.1},
-					tDiffuse3: { type: "t", value: rtTexture3 } },
-					vertexShader: document.getElementById( 'vertexShader' ).textContent,
-					fragmentShader: document.getElementById( 'fragmentStep3' ).textContent,
-
-					depthWrite: false
-
-				} );								
-				materialCopy1 = new THREE.ShaderMaterial( {
-
-					uniforms: { tDiffuse1: { type: "t", value: rtTexture1c } },
-					vertexShader: document.getElementById( 'vertexShader' ).textContent,
-					fragmentShader: document.getElementById( 'fragmentCopy1' ).textContent,
-
-					depthWrite: false
-
-				} );				
-				materialCopy2 = new THREE.ShaderMaterial( {
-
-					uniforms: { tDiffuse2: { type: "t", value: rtTexture2c } },
-					vertexShader: document.getElementById( 'vertexShader' ).textContent,
-					fragmentShader: document.getElementById( 'fragmentCopy2' ).textContent,
-
-					depthWrite: false
-
-				} );	
-				materialCopy3 = new THREE.ShaderMaterial( {
-
-					uniforms: { tDiffuse3: { type: "t", value: rtTexture3c } },
-					vertexShader: document.getElementById( 'vertexShader' ).textContent,
-					fragmentShader: document.getElementById( 'fragmentCopy3' ).textContent,
-
-					depthWrite: false
-
-				} );		
-
-				var plane = new THREE.PlaneBufferGeometry( customWindow.innerWidth, customWindow.innerHeight );
-
-				quad = new THREE.Mesh( plane, materialStep1 );
-				sceneStep1.add( quad );
-				quad = new THREE.Mesh( plane, materialStep2 );
-				sceneStep2.add( quad );
-				quad = new THREE.Mesh( plane, materialStep3 );
-				sceneStep3.add( quad );
-
-				quad = new THREE.Mesh( plane, materialCopy1 );
-				sceneCopy1.add( quad );
-				quad = new THREE.Mesh( plane, materialCopy2 );
-				sceneCopy2.add( quad );
-				quad = new THREE.Mesh( plane, materialCopy3 );
-				sceneCopy3.add( quad );
-
-				quad = new THREE.Mesh( plane, materialCompute1 );
-				sceneCompute1.add( quad );
-				quad = new THREE.Mesh( plane, materialCompute2 );
-				sceneCompute2.add( quad );				
-				quad = new THREE.Mesh( plane, materialCompute3 );
-				sceneCompute3.add( quad );
-
-				quad = new THREE.Mesh( plane, materialShow );
-				sceneShow.add( quad );
-
-				renderer = new THREE.WebGLRenderer();
-				renderer.setSize( customWindow.innerWidth, customWindow.innerHeight );
-				renderer.autoClear = false;
-
-				materialStep1.uniforms.dt.value  = 1. / customWindow.innerHeight;
-				materialStep2.uniforms.dt.value  = 1. / customWindow.innerHeight;
-				materialStep3.uniforms.dt.value  = 1. / customWindow.innerHeight;
-
-				container.appendChild( renderer.domElement );
-
-				stats = new Stats();
-				stats.domElement.style.position = 'absolute';
-				stats.domElement.style.top = '0px';
-				container.appendChild( stats.domElement );
-
-			}
-
-			function animate() {
-
-				requestAnimationFrame( animate );
-
-				render();
-				stats.update();
-
-			}
-
-			function render() {
-
-				//var time = Date.now() * 0.0015;
-				renderer.clear();
-
-				// Render first scene into texture
-
-				renderer.render( sceneStep1, cameraRTT, rtTexture1c, true );
-				renderer.render( sceneCopy1, cameraRTT, rtTexture1, true );
-				
-				renderer.render( sceneStep2, cameraRTT, rtTexture2c, true );
-				renderer.render( sceneCopy2, cameraRTT, rtTexture2, true );
-				
-				renderer.render( sceneStep3, cameraRTT, rtTexture3c, true );
-				renderer.render( sceneCopy3, cameraRTT, rtTexture3, true );
-
-
-				renderer.render( sceneCompute1, cameraRTT, rtTexture1c, true );
-				renderer.render( sceneCompute2, cameraRTT, rtTexture2c, true );
-				renderer.render( sceneCompute3, cameraRTT, rtTexture3c, true );
-
-				renderer.render( sceneCopy1, cameraRTT, rtTexture1, true );
-				renderer.render( sceneCopy2, cameraRTT, rtTexture2, true );
-				renderer.render( sceneCopy3, cameraRTT, rtTexture3, true );
-
-				// Render full screen quad with generated texture
-
-				renderer.render( sceneShow, cameraRTT );
-
-				materialStep1.uniforms.time.value += delta;
-				materialStep2.uniforms.time.value += delta;
-				materialStep3.uniforms.time.value += delta;
-
-				materialCompute1.uniforms.currTime.value += delta;
-				materialCompute2.uniforms.currTime.value += delta;
-				materialCompute3.uniforms.currTime.value += delta;
-
-			}
-
-		</script>
 	</body>
 </html>
