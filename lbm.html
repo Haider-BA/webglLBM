@@ -46,10 +46,10 @@
 			uniform highp sampler2D tDiffuse1;
 			uniform highp sampler2D tDiffuse2;
 			uniform highp sampler2D tDiffuse3;
-
+			uniform highp float currTime;
 
 			void main() {
-				float omega=1.0; 
+				float omega=0.25; 
 				//float density=1.0; 
 				float t1=4./9.; 
 				float t2=1./9.; 
@@ -59,6 +59,7 @@
 				vec4 v1 = texture2D( tDiffuse1, vUv);
 				vec4 v2 = texture2D( tDiffuse2, vUv);
 				vec4 v3 = texture2D( tDiffuse3, vUv);
+
 				float f1 = v1.r;
 				float f2 = v1.g;
 				float f3 = v1.b;
@@ -75,8 +76,8 @@
 				float invDensity = 1./ density;
 				float ux = invDensity *(f1+f2+f8-f4-f5-f6);
 				float uy = invDensity *(f2+f3+f4-f6-f7-f8);
-				if (vUv.x < 0.01 || vUv.x > 0.99 ) {
-					ux += 1.e-3;
+				if (currTime < 0.1 && (vUv.x < 0.002 )) {
+					ux += .02;
 				};
 				float usqu = ux*ux + uy*uy;
 				float uc2 = ux+uy;
@@ -96,7 +97,11 @@
  
 				float feq9 = t1*density*(1. - usqu/(2.*c_squ));
 
-				gl_FragColor = vec4(feq1,feq2,feq3,1.);
+				float ff1 = omega * feq1 + (1. - omega) * f1;
+				float ff2 = omega * feq2 + (1. - omega) * f2;
+				float ff3 = omega * feq3 + (1. - omega) * f3;
+					
+				gl_FragColor = vec4(ff1,ff2,ff3,1.);
 
 			}
 
@@ -109,10 +114,11 @@
 			uniform highp sampler2D tDiffuse1;
 			uniform highp sampler2D tDiffuse2;
 			uniform highp sampler2D tDiffuse3;
+			uniform highp float currTime;
 
 
 			void main() {
-				float omega=1.0; 
+				float omega=0.25; 
 				//float density=1.0; 
 				float t1=4./9.; 
 				float t2=1./9.; 
@@ -138,8 +144,8 @@
 				float invDensity = 1./ density;
 				float ux = invDensity *(f1+f2+f8-f4-f5-f6);
 				float uy = invDensity *(f2+f3+f4-f6-f7-f8);				
-				if (vUv.x < 0.01 || vUv.x > 0.99 ) {
-					ux += 1.e-3;
+				if (currTime < 0.1 && (vUv.x < 0.002 )) {
+					ux += .02;
 				};
 				float usqu = ux*ux + uy*uy;
 				float uc2 = ux+uy;
@@ -159,8 +165,11 @@
 
 				float feq9 = t1*density*(1. - usqu/(2.*c_squ));
 				
+				float ff4 = omega * feq4 + (1. - omega) * f4;
+				float ff5 = omega * feq5 + (1. - omega) * f5;
+				float ff6 = omega * feq6 + (1. - omega) * f6;
 
-				gl_FragColor = vec4(feq4,feq5,feq6,1.);
+				gl_FragColor = vec4(ff4,ff5,ff6,1.);
 
 			}
 
@@ -173,10 +182,11 @@
 			uniform highp sampler2D tDiffuse1;
 			uniform highp sampler2D tDiffuse2;
 			uniform highp sampler2D tDiffuse3;
+			uniform highp float currTime;
 
 
 			void main() {
-				float omega=1.0; 
+				float omega=0.25; 
 				//float density=1.0; 
 				float t1=4./9.; 
 				float t2=1./9.; 
@@ -202,8 +212,8 @@
 				float invDensity = 1./ density;
 				float ux = invDensity *(f1+f2+f8-f4-f5-f6);
 				float uy = invDensity *(f2+f3+f4-f6-f7-f8);
-				if (vUv.x < 0.01 || vUv.x > 0.99 ) {
-					ux += 1.e-3;
+				if (currTime < 0.1 && (vUv.x < 0.002 )) {
+					ux += .02;
 				};
 				float usqu = ux*ux + uy*uy;
 				float uc2 = ux+uy;
@@ -211,20 +221,23 @@
 				float uc6 = -uc2;
 				float uc8 = -uc4;
 
-				float feq1 = t2*density*(1. + ux/c_squ+0.5*(ux/c_squ)*(ux/c_squ)- usqu/(2.*c_squ));
+				float feq1 = t2*density*(1. + ux/c_squ+0.5*(ux/c_squ)*(ux/c_squ) - usqu/(2.*c_squ));
 				float feq3 = t2*density*(1. + uy/c_squ+0.5*(uy/c_squ)*(uy/c_squ) - usqu/(2.*c_squ));
-				float feq5 = t2*density*(1. - ux/c_squ+0.5*(ux/c_squ)*(ux/c_squ)- usqu/(2.*c_squ));
+				float feq5 = t2*density*(1. - ux/c_squ+0.5*(ux/c_squ)*(ux/c_squ) - usqu/(2.*c_squ));
 				float feq7 = t2*density*(1. - uy/c_squ+0.5*(uy/c_squ)*(uy/c_squ) - usqu/(2.*c_squ));
  
-				float feq2 = t3*density*(1. + uc2/c_squ+0.5*(uc2/c_squ)*(uc2/c_squ)- usqu/(2.*c_squ));
-				float feq4 = t3*density*(1. + uc4/c_squ+0.5*(uc4/c_squ)*(uc4/c_squ)- usqu/(2.*c_squ));
-				float feq6 = t3*density*(1. + uc6/c_squ+0.5*(uc6/c_squ)*(uc6/c_squ)- usqu/(2.*c_squ));
-				float feq8 = t3*density*(1. + uc8/c_squ+0.5*(uc8/c_squ)*(uc8/c_squ)- usqu/(2.*c_squ));
+				float feq2 = t3*density*(1. + uc2/c_squ+0.5*(uc2/c_squ)*(uc2/c_squ) - usqu/(2.*c_squ));
+				float feq4 = t3*density*(1. + uc4/c_squ+0.5*(uc4/c_squ)*(uc4/c_squ) - usqu/(2.*c_squ));
+				float feq6 = t3*density*(1. + uc6/c_squ+0.5*(uc6/c_squ)*(uc6/c_squ) - usqu/(2.*c_squ));
+				float feq8 = t3*density*(1. + uc8/c_squ+0.5*(uc8/c_squ)*(uc8/c_squ) - usqu/(2.*c_squ));
  
 				float feq9 = t1*density*(1. - usqu/(2.*c_squ));
-				
 
-				gl_FragColor = vec4(feq7,feq8,feq9,1.);
+				float ff7 = omega * feq7 + (1. - omega) * f7;
+				float ff8 = omega * feq8 + (1. - omega) * f8;
+				float ff9 = omega * feq9 + (1. - omega) * f9;				
+
+				gl_FragColor = vec4(ff7,ff8,ff9,1.);
 
 			}
 
@@ -281,11 +294,21 @@
 				vec4 v1 = texture2D( tDiffuse1, vUv );
 				vec4 v2 = texture2D( tDiffuse2, vUv );
 				vec4 v3 = texture2D( tDiffuse3, vUv );
-				float ux = v1.r + v1.g + v3.g - v2.r -v2.g - v2.b;
-				float uy = v1.g + v1.b + v2.r - v2.b -v3.r - v3.g;
-				float velmag =  sqrt(uy*uy+ux*ux);
-				//if (velmag > 1.) { velmag = 1.; };
-				gl_FragColor = vec4(velmag, 0., 1.-velmag, 1.);
+
+				float f1 = v1.r;
+				float f2 = v1.g;
+				float f3 = v1.b;
+				float f4 = v2.r;
+				float f5 = v2.g;
+				float f6 = v2.b;				 
+				float f7 = v3.r;
+				float f8 = v3.g;
+
+				float ux = f1+f2+f8-f4-f5-f6;
+				float uy = f2+f3+f4-f6-f7-f8;
+				float velmag = 40000.*sqrt(uy*uy);// 10.*sqrt(1.*uy*uy+1.*ux*ux);
+				//if (velmag > 1.) { velmag = 1; };
+				gl_FragColor = vec4(velmag, 0,1.-velmag, 1.);
 				//gl_FragColor = vec4(velmag, 0., 1. - velmag, 1.);
 
 
@@ -305,22 +328,13 @@
 			void main() {
 
 				if (time  == 0. )  {
-					gl_FragColor = vec4(1.,1.,1.,0.);
+					gl_FragColor = vec4(1./9.,1./9.,1./9.,1.);
 				} else {
-					float h = -dt;
+					float h = - dt;
 					//vec4 fVec = texture2D( tDiffuse3, vUv + vec2(h,0.));
 					float f1 = texture2D( tDiffuse3, vUv + vec2(h,0)).r;
 					float f2 = texture2D( tDiffuse3, vUv + vec2(h,h)).g;
 					float f3 = texture2D( tDiffuse3, vUv + vec2(0,h)).b;
-
-					//vec4 colorVecW = texture2D( tDiffuse3, vUv + vec2(-h,0.));
-					//vec4 colorVecN = texture2D( tDiffuse3, vUv + vec2(0.,h));
-					//vec4 colorVecS = texture2D( tDiffuse3, vUv + vec2(0.,-h));
-					//vec4 colorVecE = texture2D( tDiffuse3, vUv + vec2(h,0.));
-					//vec4 colorVec = texture2D( tDiffuse3, vUv );
-					
-					//vec4 endColor;
-					//endColor = colorVec + 0.25 * (colorVecN + colorVecS + colorVecW + colorVecE - 4. * colorVec );
 
 					gl_FragColor = vec4(f1, f2, f3 ,1.);
 				}
@@ -340,21 +354,12 @@
 			void main() {
 
 				if (time  == 0. )  {
-					gl_FragColor = vec4(1.,1.,1.,0.);
+					gl_FragColor = vec4(1./9.,1./9.,1./9.,1.);
 				} else {
-					float h = -dt;
+					float h = - dt;
 					float f4 = texture2D( tDiffuse3, vUv + vec2(-h,h)).r;
 					float f5 = texture2D( tDiffuse3, vUv + vec2(-h,0)).g;
 					float f6 = texture2D( tDiffuse3, vUv + vec2(-h,-h)).b;
-
-					//vec4 colorVecW = texture2D( tDiffuse3, vUv + vec2(-h,0.));
-					//vec4 colorVecN = texture2D( tDiffuse3, vUv + vec2(0.,h));
-					//vec4 colorVecS = texture2D( tDiffuse3, vUv + vec2(0.,-h));
-					//vec4 colorVecE = texture2D( tDiffuse3, vUv + vec2(h,0.));
-					//vec4 colorVec = texture2D( tDiffuse3, vUv );
-					
-					//vec4 endColor;
-					//endColor = colorVec + 0.25 * (colorVecN + colorVecS + colorVecW + colorVecE - 4. * colorVec );
 
 					gl_FragColor = vec4(f4, f5, f6 ,1.);
 				}
@@ -374,21 +379,12 @@
 			void main() {
 
 				if (time  == 0. ) {
-					gl_FragColor = vec4(1.,1.,1.,0.);
+					gl_FragColor = vec4(1./9.,1./9.,1./9.,1.);
 				} else {
-					float h = -dt;
+					float h = - dt;
 					float f7 = texture2D( tDiffuse3, vUv + vec2(0,-h)).r;
 					float f8 = texture2D( tDiffuse3, vUv + vec2(h,-h)).g;
 					float f9 = texture2D( tDiffuse3, vUv).b;
-
-					//vec4 colorVecW = texture2D( tDiffuse3, vUv + vec2(-h,0.));
-					//vec4 colorVecN = texture2D( tDiffuse3, vUv + vec2(0.,h));
-					//vec4 colorVecS = texture2D( tDiffuse3, vUv + vec2(0.,-h));
-					//vec4 colorVecE = texture2D( tDiffuse3, vUv + vec2(h,0.));
-					//vec4 colorVec = texture2D( tDiffuse3, vUv );
-					
-					//vec4 endColor;
-					//endColor = colorVec + 0.25 * (colorVecN + colorVecS + colorVecW + colorVecE - 4. * colorVec );
 
 					gl_FragColor = vec4(f7, f8, f9 ,1.);
 				}
@@ -488,7 +484,7 @@
 
 				materialCompute1 = new THREE.ShaderMaterial( {
 
-					uniforms: { tDiffuse1: { type: "t", value: rtTexture1 } ,
+					uniforms: { tDiffuse1: { type: "t", value: rtTexture1 } , currTime: {type: "f", value:0} ,
 					tDiffuse2: { type: "t", value: rtTexture2 },
 					tDiffuse3: { type: "t", value: rtTexture3 } },
 					vertexShader: document.getElementById( 'vertexShader' ).textContent,
@@ -497,7 +493,7 @@
 				} );
 				materialCompute2 = new THREE.ShaderMaterial( {
 
-					uniforms: {tDiffuse1: { type: "t", value: rtTexture1 } ,
+					uniforms: {tDiffuse1: { type: "t", value: rtTexture1 } , currTime: {type: "f", value:0},
 					tDiffuse2: { type: "t", value: rtTexture2 },
 					tDiffuse3: { type: "t", value: rtTexture3 } },
 					vertexShader: document.getElementById( 'vertexShader' ).textContent,
@@ -506,7 +502,7 @@
 				} );			
 				materialCompute3 = new THREE.ShaderMaterial( {
 
-					uniforms: {tDiffuse1: { type: "t", value: rtTexture1 } ,
+					uniforms: {tDiffuse1: { type: "t", value: rtTexture1 } ,currTime: {type: "f", value:0},
 					tDiffuse2: { type: "t", value: rtTexture2 },
 					tDiffuse3: { type: "t", value: rtTexture3 } },
 					vertexShader: document.getElementById( 'vertexShader' ).textContent,
@@ -642,12 +638,11 @@
 
 
 				renderer.render( sceneCompute1, cameraRTT, rtTexture1c, true );
-				renderer.render( sceneCopy1, cameraRTT, rtTexture1, true );
-				
 				renderer.render( sceneCompute2, cameraRTT, rtTexture2c, true );
-				renderer.render( sceneCopy2, cameraRTT, rtTexture2, true );
-				
 				renderer.render( sceneCompute3, cameraRTT, rtTexture3c, true );
+
+				renderer.render( sceneCopy1, cameraRTT, rtTexture1, true );
+				renderer.render( sceneCopy2, cameraRTT, rtTexture2, true );
 				renderer.render( sceneCopy3, cameraRTT, rtTexture3, true );
 
 				// Render full screen quad with generated texture
@@ -657,6 +652,10 @@
 				materialStep1.uniforms.time.value += delta;
 				materialStep2.uniforms.time.value += delta;
 				materialStep3.uniforms.time.value += delta;
+
+				materialCompute1.uniforms.currTime.value += delta;
+				materialCompute2.uniforms.currTime.value += delta;
+				materialCompute3.uniforms.currTime.value += delta;
 
 			}
 
