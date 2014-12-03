@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 	<head>
@@ -19,7 +18,7 @@
 
 			#info {
 				position: absolute;
-				top: 330px; width: 100%;
+				top: 380px; width: 100%;
 				padding: 5px;
 			}
 
@@ -30,11 +29,12 @@
 		</style>
 	</head>
 	<body>
+		<br><br>
 		<div id="container"></div>
 		<div id="info"><a href="https://github.com/yhenon/webglLBM" target="_blank">webglLBM</a> LBM implemented in webGL with ThreeJS</div>
 		
 		<!-- <br> Render type<input size="2" value="0" onchange="setRenderType( this.value )"> -->
-		Field to render: <select onchange="setRenderType( this.value )">
+		Scalar field type: <select onchange="setRenderType( this.value )">
 		  <option value="0">x</option>
 		  <option value="1">y</option>
 		  <option value="2">mag</option>
@@ -42,7 +42,8 @@
 
 		</select>		
 		<br> Convergence parameter <input size="2" value="0.25" onchange="setOmega( this.value )">
-	
+		<br> Scale output by <input type="range" min="1.01" max="6.01" value="2.01" step="0.01" onchange="setScaleOutput( this.value )" />
+
 		<!-- <script src="./js/three.min.js"></script> -->
 		<script src="http://ajax.googleapis.com/ajax/libs/threejs/r67/three.min.js"></script>
 		<script src="js/Detector.js"></script>
@@ -58,6 +59,7 @@
 			uniform highp sampler2D tDiffuse3;
 			uniform highp float currTime;
 			uniform highp float omega;
+			uniform int BCType;
 
 			void main() {
 				//float omega=0.25; 
@@ -87,12 +89,10 @@
 				float invDensity = 1./ density;
 				float ux = invDensity *(f1+f2+f8-f4-f5-f6);
 				float uy = invDensity *(f2+f3+f4-f6-f7-f8);
-				if (currTime > 0. && (vUv.x < 0.002 )) {
+				if (currTime > 0. &&(abs(vUv.x - 0.5/512.) < 1e-6)) {
 					ux += .01;
 				};
-				if (currTime > 0. && vUv.y < 0.5) {
-					//ux += 0.001;
-				};				
+			
 				float usqu = ux*ux + uy*uy;
 				float uc2 = ux+uy;
 				float uc4 = -ux+uy;
@@ -101,15 +101,7 @@
  
 				float feq1 = t2*density*(1. + ux/c_squ+0.5*(ux/c_squ)*(ux/c_squ)- usqu/(2.*c_squ));
 				float feq3 = t2*density*(1. + uy/c_squ+0.5*(uy/c_squ)*(uy/c_squ) - usqu/(2.*c_squ));
-				float feq5 = t2*density*(1. - ux/c_squ+0.5*(ux/c_squ)*(ux/c_squ)- usqu/(2.*c_squ));
-				float feq7 = t2*density*(1. - uy/c_squ+0.5*(uy/c_squ)*(uy/c_squ) - usqu/(2.*c_squ));
- 
 				float feq2 = t3*density*(1. + uc2/c_squ+0.5*(uc2/c_squ)*(uc2/c_squ)- usqu/(2.*c_squ));
-				float feq4 = t3*density*(1. + uc4/c_squ+0.5*(uc4/c_squ)*(uc4/c_squ)- usqu/(2.*c_squ));
-				float feq6 = t3*density*(1. + uc6/c_squ+0.5*(uc6/c_squ)*(uc6/c_squ)- usqu/(2.*c_squ));
-				float feq8 = t3*density*(1. + uc8/c_squ+0.5*(uc8/c_squ)*(uc8/c_squ)- usqu/(2.*c_squ));
- 
-				float feq9 = t1*density*(1. - usqu/(2.*c_squ));
 
 				if ( ( (vUv.x-0.5) * (vUv.x-0.5) + (vUv.y-0.5)*(vUv.y-0.5) ) < 0.025*0.025 ) {
 					
@@ -137,7 +129,7 @@
 			uniform highp sampler2D tDiffuse3;
 			uniform highp float currTime;
 			uniform highp float omega;
-
+			uniform int BCType;
 
 			void main() {
 				//float omega=0.25; 
@@ -166,29 +158,19 @@
 				float invDensity = 1./ density;
 				float ux = invDensity *(f1+f2+f8-f4-f5-f6);
 				float uy = invDensity *(f2+f3+f4-f6-f7-f8);				
-				if (currTime > 0. && (vUv.x < 0.002 )) {
+				if (currTime > 0. && (abs(vUv.x - 0.5/512.) < 1e-6)) {
 					ux += .01;
 				};
-				if (currTime > 0. && vUv.y < 0.5) {
-					//ux += 0.001;
-				};				
+			
 				float usqu = ux*ux + uy*uy;
 				float uc2 = ux+uy;
 				float uc4 = -ux+uy;
 				float uc6 = -uc2;
 				float uc8 = -uc4;
 
-				float feq1 = t2*density*(1. + ux/c_squ+0.5*(ux/c_squ)*(ux/c_squ)- usqu/(2.*c_squ));
-				float feq3 = t2*density*(1. + uy/c_squ+0.5*(uy/c_squ)*(uy/c_squ) - usqu/(2.*c_squ));
 				float feq5 = t2*density*(1. - ux/c_squ+0.5*(ux/c_squ)*(ux/c_squ)- usqu/(2.*c_squ));
-				float feq7 = t2*density*(1. - uy/c_squ+0.5*(uy/c_squ)*(uy/c_squ) - usqu/(2.*c_squ));
-
-				float feq2 = t3*density*(1. + uc2/c_squ+0.5*(uc2/c_squ)*(uc2/c_squ)- usqu/(2.*c_squ));
 				float feq4 = t3*density*(1. + uc4/c_squ+0.5*(uc4/c_squ)*(uc4/c_squ)- usqu/(2.*c_squ));
 				float feq6 = t3*density*(1. + uc6/c_squ+0.5*(uc6/c_squ)*(uc6/c_squ)- usqu/(2.*c_squ));
-				float feq8 = t3*density*(1. + uc8/c_squ+0.5*(uc8/c_squ)*(uc8/c_squ)- usqu/(2.*c_squ));
-
-				float feq9 = t1*density*(1. - usqu/(2.*c_squ));
 				
 				float ff4 = omega * feq4 + (1. - omega) * f4;
 				float ff5 = omega * feq5 + (1. - omega) * f5;
@@ -213,7 +195,7 @@
 			uniform highp sampler2D tDiffuse3;
 			uniform highp float currTime;
 			uniform highp float omega;
-
+			uniform int BCType;
 
 			void main() {
 				//float omega=0.25; 
@@ -242,35 +224,24 @@
 				float invDensity = 1./ density;
 				float ux = invDensity *(f1+f2+f8-f4-f5-f6);
 				float uy = invDensity *(f2+f3+f4-f6-f7-f8);
-				if (currTime > 0. && (vUv.x < 0.002 )) {
+				if (currTime > 0. && (abs(vUv.x - 0.5/512.) < 1e-6) ) {
 					ux += .01;
 				};
-				if (currTime > 0. && vUv.y < 0.5) {
-					//ux += 0.001;
-				};
+
 				float usqu = ux*ux + uy*uy;
 				float uc2 = ux+uy;
 				float uc4 = -ux+uy;
 				float uc6 = -uc2;
 				float uc8 = -uc4;
 
-				float feq1 = t2*density*(1. + ux/c_squ+0.5*(ux/c_squ)*(ux/c_squ) - usqu/(2.*c_squ));
-				float feq3 = t2*density*(1. + uy/c_squ+0.5*(uy/c_squ)*(uy/c_squ) - usqu/(2.*c_squ));
-				float feq5 = t2*density*(1. - ux/c_squ+0.5*(ux/c_squ)*(ux/c_squ) - usqu/(2.*c_squ));
-				float feq7 = t2*density*(1. - uy/c_squ+0.5*(uy/c_squ)*(uy/c_squ) - usqu/(2.*c_squ));
- 
-				float feq2 = t3*density*(1. + uc2/c_squ+0.5*(uc2/c_squ)*(uc2/c_squ) - usqu/(2.*c_squ));
-				float feq4 = t3*density*(1. + uc4/c_squ+0.5*(uc4/c_squ)*(uc4/c_squ) - usqu/(2.*c_squ));
-				float feq6 = t3*density*(1. + uc6/c_squ+0.5*(uc6/c_squ)*(uc6/c_squ) - usqu/(2.*c_squ));
-				float feq8 = t3*density*(1. + uc8/c_squ+0.5*(uc8/c_squ)*(uc8/c_squ) - usqu/(2.*c_squ));
- 
-				float feq9 = t1*density*(1. - usqu/(2.*c_squ));
 
+				float feq7 = t2*density*(1. - uy/c_squ+0.5*(uy/c_squ)*(uy/c_squ) - usqu/(2.*c_squ));
+				float feq8 = t3*density*(1. + uc8/c_squ+0.5*(uc8/c_squ)*(uc8/c_squ) - usqu/(2.*c_squ));
+				float feq9 = t1*density*(1. - usqu/(2.*c_squ));
 				float ff7 = omega * feq7 + (1. - omega) * f7;
 				float ff8 = omega * feq8 + (1. - omega) * f8;
 				float ff9 = omega * feq9 + (1. - omega) * f9;				
-				if ( ( (vUv.x-0.5) * (vUv.x-0.5) + (vUv.y-0.5)*(vUv.y-0.5) ) < 0.025*0.025 ) {
-					
+				if ( ( (vUv.x-0.5) * (vUv.x-0.5) + (vUv.y-0.5)*(vUv.y-0.5) ) < 0.025*0.025 ) {	
 					gl_FragColor = vec4(f7, f8, f9, 1.);
 				} 	else {
 
@@ -323,6 +294,7 @@
 			precision highp int;
 
 			varying vec2 vUv;
+			uniform highp float scaleOutput;
 			uniform highp sampler2D tDiffuse1;
 			uniform highp sampler2D tDiffuse2;
 			uniform highp sampler2D tDiffuse3;
@@ -342,9 +314,9 @@
 			}
 
 			void main() {
-				vec4 v1 = texture2D( tDiffuse1, vUv );
-				vec4 v2 = texture2D( tDiffuse2, vUv );
-				vec4 v3 = texture2D( tDiffuse3, vUv );
+				vec4 v1 = texture2D( tDiffuse1,vec2(1.,1.) - vUv );
+				vec4 v2 = texture2D( tDiffuse2,vec2(1.,1.) -  vUv );
+				vec4 v3 = texture2D( tDiffuse3,vec2(1.,1.) -  vUv );
 				float ux,uy;
 				getvel(v1,v2,v3,ux,uy);
 
@@ -358,26 +330,26 @@
 					velmag = 5.*sqrt(ux*ux+uy*uy);
 				} else if ( renderType == 3 ) {
 					float uW, vW, uE, vE, uN, vN, uS, vS;
-					v1 = texture2D( tDiffuse1, vUv + vec2(1./256.,0.) );
-					v2 = texture2D( tDiffuse2, vUv + vec2(1./256.,0.) );
-					v3 = texture2D( tDiffuse3, vUv + vec2(1./256.,0.) );					
+					v1 = texture2D( tDiffuse1,vec2(1.,1.) -  vUv + vec2(1./256.,0.) );
+					v2 = texture2D( tDiffuse2,vec2(1.,1.) -  vUv + vec2(1./256.,0.) );
+					v3 = texture2D( tDiffuse3,vec2(1.,1.) -  vUv + vec2(1./256.,0.) );					
 					getvel(v1,v2,v3,uE,vE);
-					v1 = texture2D( tDiffuse1, vUv + vec2(-1./256.,0.) );
-					v2 = texture2D( tDiffuse2, vUv + vec2(-1./256.,0.) );
-					v3 = texture2D( tDiffuse3, vUv + vec2(-1./256.,0.) );					
+					v1 = texture2D( tDiffuse1,vec2(1.,1.) -  vUv + vec2(-1./256.,0.) );
+					v2 = texture2D( tDiffuse2,vec2(1.,1.) -  vUv + vec2(-1./256.,0.) );
+					v3 = texture2D( tDiffuse3,vec2(1.,1.) -  vUv + vec2(-1./256.,0.) );					
 					getvel(v1,v2,v3,uW,vW);
-					v1 = texture2D( tDiffuse1, vUv + vec2(0.,1./256.) );
-					v2 = texture2D( tDiffuse2, vUv + vec2(0.,1./256.) );
-					v3 = texture2D( tDiffuse3, vUv + vec2(0.,1./256.) );					
+					v1 = texture2D( tDiffuse1,vec2(1.,1.) -  vUv + vec2(0.,1./256.) );
+					v2 = texture2D( tDiffuse2,vec2(1.,1.) -  vUv + vec2(0.,1./256.) );
+					v3 = texture2D( tDiffuse3,vec2(1.,1.) -  vUv + vec2(0.,1./256.) );					
 					getvel(v1,v2,v3,uN,vN);
-					v1 = texture2D( tDiffuse1, vUv + vec2(0.,-1./256.) );
-					v2 = texture2D( tDiffuse2, vUv + vec2(0.,-1./256.) );
-					v3 = texture2D( tDiffuse3, vUv + vec2(0.,-1./256.) );					
+					v1 = texture2D( tDiffuse1,vec2(1.,1.) -  vUv + vec2(0.,-1./256.) );
+					v2 = texture2D( tDiffuse2,vec2(1.,1.) -  vUv + vec2(0.,-1./256.) );
+					v3 = texture2D( tDiffuse3,vec2(1.,1.) -  vUv + vec2(0.,-1./256.) );					
 					getvel(v1,v2,v3,uS,vS);
 					velmag = abs(100.* ( (vE-vW)-(uN-uS) ));
 
 				};
-				float a=(1.-velmag)/0.25;	//invert and group
+				float a=  (1.-scaleOutput * velmag)/0.25;	//invert and group
 				int X= int(floor(a));	//this is the integer part
 				int Y= int(floor(255.*(a-float(X)))); //fractional part from 0 to 255
 				float r,g,b;
@@ -462,7 +434,7 @@
 					//float h = - dt;
 					float f4 = texture2D( tDiffuse3, vUv + vec2(-dtx,dty)).r;
 					float f5 = texture2D( tDiffuse3, vUv + vec2(-dtx,0)).g;
-					float f6 = texture2D( tDiffuse3, vUv + vec2(-dty,-dty)).b;
+					float f6 = texture2D( tDiffuse3, vUv + vec2(-dtx,-dty)).b;
 
 					gl_FragColor = vec4(f4, f5, f6 ,1.);
 				}
@@ -525,7 +497,7 @@
 
 			void main() {
 
-				if ( ( (vUv.x-0.5) * (vUv.x-0.5) + (vUv.y-0.5)*(vUv.y-0.5) ) < 0.025*0.025 ) {
+				if ( vUv.y < 1e-6+0.5/256. || vUv.y > 1.0 - 1e-6 -0.5/256.) {
 					vec4 v2 = texture2D(tDiffuse2,vUv );
 					vec4 v3 = texture2D(tDiffuse3,vUv );
 					//float f4 = v2.r;
@@ -553,7 +525,7 @@
 
 			void main() {
 
-				if ( ( (vUv.x-0.5) * (vUv.x-0.5) + (vUv.y-0.5)*(vUv.y-0.5) ) < 0.025*0.025 ) {
+				if ( vUv.y < 1e-6+0.5/256. || vUv.y > 1.0 - 1e-6 -0.5/256.) {
 					vec4 v1 = texture2D(tDiffuse1,vUv );
 					vec4 v3 = texture2D(tDiffuse3,vUv );
 					//float f4 = v1.r;
@@ -581,7 +553,7 @@
 
 			void main() {
 
-				if ( ( (vUv.x-0.5) * (vUv.x-0.5) + (vUv.y-0.5)*(vUv.y-0.5) ) < 0.025*0.025 ) {
+				if ( vUv.y < 1e-6+0.5/256. || vUv.y > 1.0 - 1e-6 -0.5/256.) {
 					vec4 v1 = texture2D(tDiffuse1,vUv );
 					vec4 v2 = texture2D(tDiffuse2,vUv );
 					//float f1 = v1.r;
@@ -614,7 +586,7 @@
 		</script>
 
 		<!-- JS code (non GLSL) is in separate .js file -->
-		<script src="./js/lbm.js"> </script>
+		<script src="js/lbm.js"> </script>
 
 	</body>
 </html>

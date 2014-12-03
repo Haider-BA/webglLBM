@@ -31,12 +31,16 @@ function setOmega(v) {
   materialCompute2.uniforms.omega.value = bu;
   materialCompute3.uniforms.omega.value = bu;
 }
+function setScaleOutput(v) {
+  var bu = v.valueOf();
+  materialShow.uniforms.scaleOutput.value = Math.log(bu);
+}
 
 function init() {
 
 	container = document.getElementById( 'container' );
 	customWindow = Object();
-	customWindow.innerWidth = 256;
+	customWindow.innerWidth = 512;
 	customWindow.innerHeight = 256;
 	cameraRTT = new THREE.OrthographicCamera( customWindow.innerWidth / - 2, customWindow.innerWidth / 2, customWindow.innerHeight / 2, customWindow.innerHeight / - 2, -1000, 1000 );
 	cameraRTT.position.z = 100;
@@ -88,14 +92,20 @@ function init() {
 
 		vertexShader: document.getElementById( 'vertexShader' ).textContent,
 		fragmentShader: document.getElementById( 'fragmentShow' ).textContent,
-		uniforms: { renderType:{ type: "i", value: 0 }, tDiffuse1: { type: "t", value: rtTexture1c },tDiffuse2: { type: "t", value: rtTexture2c },tDiffuse3: { type: "t", value: rtTexture3c }  } }
+		uniforms: { renderType:{ type: "i", value: 0 }, 
+		tDiffuse1: { type: "t", value: rtTexture1c },
+		tDiffuse2: { type: "t", value: rtTexture2c },
+		tDiffuse3: { type: "t", value: rtTexture3c },
+		scaleOutput: { type: "f", value: Math.log(2.) }
+		  } }
 	);
 
 	materialCompute1 = new THREE.ShaderMaterial( {
 
 		uniforms: { tDiffuse1: { type: "t", value: rtTexture1 } , currTime: {type: "f", value:0} , omega: {type: "f", value:1.25},
 		tDiffuse2: { type: "t", value: rtTexture2 },
-		tDiffuse3: { type: "t", value: rtTexture3 } },
+		tDiffuse3: { type: "t", value: rtTexture3 },
+		BCType: {type: "i", value: 0 } },
 		vertexShader: document.getElementById( 'vertexShader' ).textContent,
 		fragmentShader: document.getElementById( 'fragmentCompute1' ).textContent,
 
@@ -104,7 +114,8 @@ function init() {
 
 		uniforms: {tDiffuse1: { type: "t", value: rtTexture1 } , currTime: {type: "f", value:0}, omega: {type: "f", value:1.25},
 		tDiffuse2: { type: "t", value: rtTexture2 },
-		tDiffuse3: { type: "t", value: rtTexture3 } },
+		tDiffuse3: { type: "t", value: rtTexture3 },
+		BCType: {type: "i", value: 0 } }, 
 		vertexShader: document.getElementById( 'vertexShader' ).textContent,
 		fragmentShader: document.getElementById( 'fragmentCompute2' ).textContent,
 
@@ -113,7 +124,8 @@ function init() {
 
 		uniforms: {tDiffuse1: { type: "t", value: rtTexture1 } ,currTime: {type: "f", value:0}, omega: {type: "f", value:1.25},
 		tDiffuse2: { type: "t", value: rtTexture2 },
-		tDiffuse3: { type: "t", value: rtTexture3 } },
+		tDiffuse3: { type: "t", value: rtTexture3 },
+		BCType: {type: "i", value: 0 } },
 		vertexShader: document.getElementById( 'vertexShader' ).textContent,
 		fragmentShader: document.getElementById( 'fragmentCompute3' ).textContent,
 
@@ -250,6 +262,7 @@ function init() {
 	sceneShow.add( quad );
 
 	renderer = new THREE.WebGLRenderer();
+	//renderer.setViewport(333+customWindow.innerWidth,0333+customWindow.innerHeight);
 	renderer.setSize( customWindow.innerWidth, customWindow.innerHeight );
 	renderer.autoClear = false;
 
@@ -260,6 +273,8 @@ function init() {
 	materialStep1.uniforms.dty.value  = 1. / customWindow.innerHeight;
 	materialStep2.uniforms.dty.value  = 1. / customWindow.innerHeight;
 	materialStep3.uniforms.dty.value  = 1. / customWindow.innerHeight;
+
+	materialShow.uniforms.scaleOutput.value = Math.log(2.);
 
 	container.appendChild( renderer.domElement );
 
@@ -286,7 +301,6 @@ function render() {
 	if (currTime == 0) {
 		renderer.render( sceneMesh, cameraRTT, meshMaskTexture, true );
 	};
-	// Render first scene into texture
 
 	renderer.render( sceneCompute1, cameraRTT, rtTexture1c, true );
 	renderer.render( sceneCompute2, cameraRTT, rtTexture2c, true );
