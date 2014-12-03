@@ -15,17 +15,14 @@
 				margin: 0px;
 				overflow: hidden;
 			}
-
 			#info {
 				position: absolute;
 				top: 380px; width: 100%;
 				padding: 5px;
 			}
-
 			a {
 				color: #ffffff;
 			}
-
 		</style>
 	</head>
 	<body>
@@ -52,7 +49,6 @@
 		<script id="fragmentCompute1" type="x-shader/x-fragment">
 			precision highp float;
 			precision highp int;
-
 			varying vec2 vUv;
 			uniform highp sampler2D tDiffuse1;
 			uniform highp sampler2D tDiffuse2;
@@ -60,7 +56,6 @@
 			uniform highp float currTime;
 			uniform highp float omega;
 			uniform int BCType;
-
 			void main() {
 				//float omega=0.25; 
 				//float density=1.0; 
@@ -68,11 +63,9 @@
 				float t2=1./9.; 
 				float t3=1./36.; 
 				float c_squ=1./3.;
-
 				vec4 v1 = texture2D( tDiffuse1, vUv);
 				vec4 v2 = texture2D( tDiffuse2, vUv);
 				vec4 v3 = texture2D( tDiffuse3, vUv);
-
 				float f1 = v1.r;
 				float f2 = v1.g;
 				float f3 = v1.b;
@@ -102,27 +95,20 @@
 				float feq1 = t2*density*(1. + ux/c_squ+0.5*(ux/c_squ)*(ux/c_squ)- usqu/(2.*c_squ));
 				float feq3 = t2*density*(1. + uy/c_squ+0.5*(uy/c_squ)*(uy/c_squ) - usqu/(2.*c_squ));
 				float feq2 = t3*density*(1. + uc2/c_squ+0.5*(uc2/c_squ)*(uc2/c_squ)- usqu/(2.*c_squ));
-
 				if ( ( (vUv.x-0.5) * (vUv.x-0.5) + (vUv.y-0.5)*(vUv.y-0.5) ) < 0.025*0.025 ) {
 					
 					gl_FragColor = vec4(f1, f2, f3, 1.);
 				} 	else {
-
 				float ff1 = omega * feq1 + (1. - omega) * f1;
 				float ff2 = omega * feq2 + (1. - omega) * f2;
 				float ff3 = omega * feq3 + (1. - omega) * f3;
-
 				gl_FragColor = vec4(ff1,ff2,ff3,1.);
 				}
-
-
 			}
-
 		</script>
 		<script id="fragmentCompute2" type="x-shader/x-fragment">
 			precision highp float;
 			precision highp int;
-
 			varying vec2 vUv;
 			uniform highp sampler2D tDiffuse1;
 			uniform highp sampler2D tDiffuse2;
@@ -130,7 +116,6 @@
 			uniform highp float currTime;
 			uniform highp float omega;
 			uniform int BCType;
-
 			void main() {
 				//float omega=0.25; 
 				//float density=1.0; 
@@ -138,7 +123,6 @@
 				float t2=1./9.; 
 				float t3=1./36.; 
 				float c_squ=1./3.;
-
 				vec4 v1 = texture2D( tDiffuse1, vUv);
 				vec4 v2 = texture2D( tDiffuse2, vUv);
 				vec4 v3 = texture2D( tDiffuse3, vUv);
@@ -167,7 +151,6 @@
 				float uc4 = -ux+uy;
 				float uc6 = -uc2;
 				float uc8 = -uc4;
-
 				float feq5 = t2*density*(1. - ux/c_squ+0.5*(ux/c_squ)*(ux/c_squ)- usqu/(2.*c_squ));
 				float feq4 = t3*density*(1. + uc4/c_squ+0.5*(uc4/c_squ)*(uc4/c_squ)- usqu/(2.*c_squ));
 				float feq6 = t3*density*(1. + uc6/c_squ+0.5*(uc6/c_squ)*(uc6/c_squ)- usqu/(2.*c_squ));
@@ -179,16 +162,13 @@
 					
 					gl_FragColor = vec4(f4, f5, f6, 1.);
 				} 	else {
-
 				gl_FragColor = vec4(ff4,ff5,ff6,1.);
 			}
 		}
-
 		</script>
 		<script id="fragmentCompute3" type="x-shader/x-fragment">
 			precision highp float;
 			precision highp int;
-
 			varying vec2 vUv;
 			uniform highp sampler2D tDiffuse1;
 			uniform highp sampler2D tDiffuse2;
@@ -196,7 +176,6 @@
 			uniform highp float currTime;
 			uniform highp float omega;
 			uniform int BCType;
-
 			void main() {
 				//float omega=0.25; 
 				//float density=1.0; 
@@ -204,7 +183,6 @@
 				float t2=1./9.; 
 				float t3=1./36.; 
 				float c_squ=1./3.;
-
 				vec4 v1 = texture2D( tDiffuse1, vUv);
 				vec4 v2 = texture2D( tDiffuse2, vUv);
 				vec4 v3 = texture2D( tDiffuse3, vUv);
@@ -227,14 +205,11 @@
 				if (currTime > 0. && (abs(vUv.x - 0.5/512.) < 1e-6) ) {
 					ux += .01;
 				};
-
 				float usqu = ux*ux + uy*uy;
 				float uc2 = ux+uy;
 				float uc4 = -ux+uy;
 				float uc6 = -uc2;
 				float uc8 = -uc4;
-
-
 				float feq7 = t2*density*(1. - uy/c_squ+0.5*(uy/c_squ)*(uy/c_squ) - usqu/(2.*c_squ));
 				float feq8 = t3*density*(1. + uc8/c_squ+0.5*(uc8/c_squ)*(uc8/c_squ) - usqu/(2.*c_squ));
 				float feq9 = t1*density*(1. - usqu/(2.*c_squ));
@@ -244,55 +219,40 @@
 				if ( ( (vUv.x-0.5) * (vUv.x-0.5) + (vUv.y-0.5)*(vUv.y-0.5) ) < 0.025*0.025 ) {	
 					gl_FragColor = vec4(f7, f8, f9, 1.);
 				} 	else {
-
 				gl_FragColor = vec4(ff7,ff8,ff9,1.);
 			}
 			}
-
 		</script>				
 		<script id="fragmentCopy1" type="x-shader/x-fragment">
 			precision highp float;
 			precision highp int;
-
 			varying vec2 vUv;
 			uniform highp sampler2D tDiffuse1;
-
 			void main() {
 				gl_FragColor = texture2D( tDiffuse1, vUv );
-
 			}
-
 		</script>
 		<script id="fragmentCopy2" type="x-shader/x-fragment">
 			precision highp float;
 			precision highp int;
-
 			varying vec2 vUv;
 			uniform highp sampler2D tDiffuse2;
-
 			void main() {
 				gl_FragColor = texture2D( tDiffuse2, vUv );
-
 			}
-
 		</script>
 		<script id="fragmentCopy3" type="x-shader/x-fragment">
 			precision highp float;
 			precision highp int;
-
 			varying vec2 vUv;
 			uniform highp sampler2D tDiffuse3;
-
 			void main() {
 				gl_FragColor = texture2D( tDiffuse3, vUv );
-
 			}
-
 		</script>		
 		<script id="fragmentShow" type="x-shader/x-fragment">
 			precision highp float;
 			precision highp int;
-
 			varying vec2 vUv;
 			uniform highp float scaleOutput;
 			uniform highp sampler2D tDiffuse1;
@@ -312,15 +272,12 @@
 				v = f2+f3+f4-f6-f7-f8;				
 				//return 3.0;
 			}
-
 			void main() {
 				vec4 v1 = texture2D( tDiffuse1,vec2(1.,1.) - vUv );
 				vec4 v2 = texture2D( tDiffuse2,vec2(1.,1.) -  vUv );
 				vec4 v3 = texture2D( tDiffuse3,vec2(1.,1.) -  vUv );
 				float ux,uy;
 				getvel(v1,v2,v3,ux,uy);
-
-
 				float velmag = 0.;
 				if (renderType == 0) {
 					velmag = 5.*sqrt(ux*ux);// 10.*sqrt(1.*uy*uy+1.*ux*ux);
@@ -347,7 +304,6 @@
 					v3 = texture2D( tDiffuse3,vec2(1.,1.) -  vUv + vec2(0.,-1./256.) );					
 					getvel(v1,v2,v3,uS,vS);
 					velmag = abs(100.* ( (vE-vW)-(uN-uS) ));
-
 				};
 				float a=  (1.-scaleOutput * velmag)/0.25;	//invert and group
 				int X= int(floor(a));	//this is the integer part
@@ -381,25 +337,18 @@
 				//if (velmag > 1.) { velmag = 1; };
 				gl_FragColor = vec4(r/255., g/255.,b/255., 1.);
 				//gl_FragColor = vec4(velmag, 0., 1. - velmag, 1.);
-
-
 			}
-
 		</script>
 
 		<script id="fragmentStep1" type="x-shader/x-fragment">
 			precision highp float;
 			precision highp int;
-
 			varying vec2 vUv;
 			uniform float time;
 			uniform float dtx;
 			uniform float dty;
-
 			uniform highp sampler2D tDiffuse3;
-
 			void main() {
-
 				if (time  == 0. )  {
 					gl_FragColor = vec4(1./9.,1./9.,1./9.,1.);
 				} else {
@@ -408,26 +357,19 @@
 					float f1 = texture2D( tDiffuse3, vUv + vec2(dtx,0)).r;
 					float f2 = texture2D( tDiffuse3, vUv + vec2(dtx,dty)).g;
 					float f3 = texture2D( tDiffuse3, vUv + vec2(0,dty)).b;
-
 					gl_FragColor = vec4(f1, f2, f3 ,1.);
 				}
-
 			}
-
 		</script>
 		<script id="fragmentStep2" type="x-shader/x-fragment">
 			precision highp float;
 			precision highp int;
-
 			varying vec2 vUv;
 			uniform float time;
 			uniform float dtx;
 			uniform float dty;
-
 			uniform highp sampler2D tDiffuse3;
-
 			void main() {
-
 				if (time  == 0. )  {
 					gl_FragColor = vec4(1./9.,1./9.,1./9.,1.);
 				} else {
@@ -435,26 +377,19 @@
 					float f4 = texture2D( tDiffuse3, vUv + vec2(-dtx,dty)).r;
 					float f5 = texture2D( tDiffuse3, vUv + vec2(-dtx,0)).g;
 					float f6 = texture2D( tDiffuse3, vUv + vec2(-dtx,-dty)).b;
-
 					gl_FragColor = vec4(f4, f5, f6 ,1.);
 				}
-
 			}
-
 		</script>
 		<script id="fragmentStep3" type="x-shader/x-fragment">
 			precision highp float;
 			precision highp int;
-
 			varying vec2 vUv;
 			uniform float time;
 			uniform float dtx;
 			uniform float dty;
-
 			uniform highp sampler2D tDiffuse3;
-
 			void main() {
-
 				if (time  == 0. ) {
 					gl_FragColor = vec4(1./9.,1./9.,1./9.,1.);
 				} else {
@@ -462,41 +397,28 @@
 					float f7 = texture2D( tDiffuse3, vUv + vec2(0,-dty)).r;
 					float f8 = texture2D( tDiffuse3, vUv + vec2(dtx,-dty)).g;
 					float f9 = texture2D( tDiffuse3, vUv).b;
-
 					gl_FragColor = vec4(f7, f8, f9 ,1.);
 				}
-
 			}
-
 		</script>	
 		<script id="fragmentInitMesh" type="x-shader/x-fragment">
 			precision highp float;
 			precision highp int;
-
 			varying vec2 vUv;
-
-
 			void main() {
-
 				if ( ( (vUv.x-0.5) * (vUv.x-0.5) + (vUv.y-0.5)*(vUv.y-0.5) ) < 0.025*0.025 ) {
-
 					gl_FragColor = vec4(1., 0., 0. ,1.);
 				}
-
 			}
-
 		</script>
 		<script id="fragmentBounceback1" type="x-shader/x-fragment">
 			precision highp float;
 			precision highp int;
-
 			varying vec2 vUv;
 			uniform highp sampler2D tDiffuse1;
 			uniform highp sampler2D tDiffuse2;
 			uniform highp sampler2D tDiffuse3;
-
 			void main() {
-
 				if ( vUv.y < 1e-6+0.5/256. || vUv.y > 1.0 - 1e-6 -0.5/256.) {
 					vec4 v2 = texture2D(tDiffuse2,vUv );
 					vec4 v3 = texture2D(tDiffuse3,vUv );
@@ -510,21 +432,16 @@
 				} else {
 					gl_FragColor = texture2D(tDiffuse1,vUv );
 				}
-
 			}
-
 		</script>
 		<script id="fragmentBounceback2" type="x-shader/x-fragment">
 			precision highp float;
 			precision highp int;
-
 			varying vec2 vUv;
 			uniform highp sampler2D tDiffuse1;
 			uniform highp sampler2D tDiffuse2;
 			uniform highp sampler2D tDiffuse3;
-
 			void main() {
-
 				if ( vUv.y < 1e-6+0.5/256. || vUv.y > 1.0 - 1e-6 -0.5/256.) {
 					vec4 v1 = texture2D(tDiffuse1,vUv );
 					vec4 v3 = texture2D(tDiffuse3,vUv );
@@ -538,21 +455,16 @@
 				} else {
 					gl_FragColor = texture2D(tDiffuse2,vUv );
 				}
-
 			}
-
 		</script>	
 		<script id="fragmentBounceback3" type="x-shader/x-fragment">
 			precision highp float;
 			precision highp int;
-
 			varying vec2 vUv;
 			uniform highp sampler2D tDiffuse1;
 			uniform highp sampler2D tDiffuse2;
 			uniform highp sampler2D tDiffuse3;
-
 			void main() {
-
 				if ( vUv.y < 1e-6+0.5/256. || vUv.y > 1.0 - 1e-6 -0.5/256.) {
 					vec4 v1 = texture2D(tDiffuse1,vUv );
 					vec4 v2 = texture2D(tDiffuse2,vUv );
@@ -566,23 +478,16 @@
 				} else {
 					gl_FragColor = texture2D(tDiffuse3,vUv );
 				}
-
 			}
-
 		</script>															
 		<script id="vertexShader" type="x-shader/x-vertex">
 			precision highp float;
 			precision highp int;
-
 			varying vec2 vUv;
-
 			void main() {
-
 				vUv = uv;
 				gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
-
 			}
-
 		</script>
 
 		<!-- JS code (non GLSL) is in separate .js file -->
