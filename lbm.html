@@ -19,7 +19,7 @@
 
 			#info {
 				position: absolute;
-				top: 300px; width: 100%;
+				top: 330px; width: 100%;
 				padding: 5px;
 			}
 
@@ -32,11 +32,21 @@
 	<body>
 		<div id="container"></div>
 		<div id="info"><a href="https://github.com/yhenon/webglLBM" target="_blank">webglLBM</a> LBM implemented in webGL with ThreeJS</div>
+		
+		<!-- <br> Render type<input size="2" value="0" onchange="setRenderType( this.value )"> -->
+		Field to render: <select onchange="setRenderType( this.value )">
+		  <option value="0">x</option>
+		  <option value="1">y</option>
+		  <option value="2">mag</option>
+		  <option value="3">curl</option>
 
-		<script src="./js/three.min.js"></script>
-
-		<script src="./js/Detector.js"></script>
-		<script src="./js/stats.min.js"></script>
+		</select>		
+		<br> Convergence parameter <input size="2" value="0.25" onchange="setOmega( this.value )">
+	
+		<!-- <script src="./js/three.min.js"></script> -->
+		<script src="http://ajax.googleapis.com/ajax/libs/threejs/r67/three.min.js"></script>
+		<script src="js/Detector.js"></script>
+		<script src="js/stats.min.js"></script>
 
 		<script id="fragmentCompute1" type="x-shader/x-fragment">
 			precision highp float;
@@ -47,9 +57,10 @@
 			uniform highp sampler2D tDiffuse2;
 			uniform highp sampler2D tDiffuse3;
 			uniform highp float currTime;
+			uniform highp float omega;
 
 			void main() {
-				float omega=0.25; 
+				//float omega=0.25; 
 				//float density=1.0; 
 				float t1=4./9.; 
 				float t2=1./9.; 
@@ -76,9 +87,12 @@
 				float invDensity = 1./ density;
 				float ux = invDensity *(f1+f2+f8-f4-f5-f6);
 				float uy = invDensity *(f2+f3+f4-f6-f7-f8);
-				if (currTime < 0.1 && (vUv.x < 0.002 )) {
-					ux += .02;
+				if (currTime > 0. && (vUv.x < 0.002 )) {
+					ux += .01;
 				};
+				if (currTime > 0. && vUv.y < 0.5) {
+					//ux += 0.001;
+				};				
 				float usqu = ux*ux + uy*uy;
 				float uc2 = ux+uy;
 				float uc4 = -ux+uy;
@@ -97,7 +111,7 @@
  
 				float feq9 = t1*density*(1. - usqu/(2.*c_squ));
 
-				if ( vUv.x < 0.6 && vUv.x > 0.5 && vUv.y > 0.5 && vUv.y < 0.6 ) {
+				if ( ( (vUv.x-0.5) * (vUv.x-0.5) + (vUv.y-0.5)*(vUv.y-0.5) ) < 0.025*0.025 ) {
 					
 					gl_FragColor = vec4(f1, f2, f3, 1.);
 				} 	else {
@@ -122,10 +136,11 @@
 			uniform highp sampler2D tDiffuse2;
 			uniform highp sampler2D tDiffuse3;
 			uniform highp float currTime;
+			uniform highp float omega;
 
 
 			void main() {
-				float omega=0.25; 
+				//float omega=0.25; 
 				//float density=1.0; 
 				float t1=4./9.; 
 				float t2=1./9.; 
@@ -151,9 +166,12 @@
 				float invDensity = 1./ density;
 				float ux = invDensity *(f1+f2+f8-f4-f5-f6);
 				float uy = invDensity *(f2+f3+f4-f6-f7-f8);				
-				if (currTime < 0.1 && (vUv.x < 0.002 )) {
-					ux += .02;
+				if (currTime > 0. && (vUv.x < 0.002 )) {
+					ux += .01;
 				};
+				if (currTime > 0. && vUv.y < 0.5) {
+					//ux += 0.001;
+				};				
 				float usqu = ux*ux + uy*uy;
 				float uc2 = ux+uy;
 				float uc4 = -ux+uy;
@@ -175,7 +193,7 @@
 				float ff4 = omega * feq4 + (1. - omega) * f4;
 				float ff5 = omega * feq5 + (1. - omega) * f5;
 				float ff6 = omega * feq6 + (1. - omega) * f6;
-				if ( vUv.x < 0.6 && vUv.x > 0.5 && vUv.y > 0.5 && vUv.y < 0.6 ) {
+				if ( ( (vUv.x-0.5) * (vUv.x-0.5) + (vUv.y-0.5)*(vUv.y-0.5) ) < 0.025*0.025 ) {
 					
 					gl_FragColor = vec4(f4, f5, f6, 1.);
 				} 	else {
@@ -194,10 +212,11 @@
 			uniform highp sampler2D tDiffuse2;
 			uniform highp sampler2D tDiffuse3;
 			uniform highp float currTime;
+			uniform highp float omega;
 
 
 			void main() {
-				float omega=0.25; 
+				//float omega=0.25; 
 				//float density=1.0; 
 				float t1=4./9.; 
 				float t2=1./9.; 
@@ -223,8 +242,11 @@
 				float invDensity = 1./ density;
 				float ux = invDensity *(f1+f2+f8-f4-f5-f6);
 				float uy = invDensity *(f2+f3+f4-f6-f7-f8);
-				if (currTime < 0.1 && (vUv.x < 0.002 )) {
-					ux += .02;
+				if (currTime > 0. && (vUv.x < 0.002 )) {
+					ux += .01;
+				};
+				if (currTime > 0. && vUv.y < 0.5) {
+					//ux += 0.001;
 				};
 				float usqu = ux*ux + uy*uy;
 				float uc2 = ux+uy;
@@ -247,7 +269,7 @@
 				float ff7 = omega * feq7 + (1. - omega) * f7;
 				float ff8 = omega * feq8 + (1. - omega) * f8;
 				float ff9 = omega * feq9 + (1. - omega) * f9;				
-				if ( vUv.x < 0.6 && vUv.x > 0.5 && vUv.y > 0.5 && vUv.y < 0.6 ) {
+				if ( ( (vUv.x-0.5) * (vUv.x-0.5) + (vUv.y-0.5)*(vUv.y-0.5) ) < 0.025*0.025 ) {
 					
 					gl_FragColor = vec4(f7, f8, f9, 1.);
 				} 	else {
@@ -304,12 +326,8 @@
 			uniform highp sampler2D tDiffuse1;
 			uniform highp sampler2D tDiffuse2;
 			uniform highp sampler2D tDiffuse3;
-
-			void main() {
-				vec4 v1 = texture2D( tDiffuse1, vUv );
-				vec4 v2 = texture2D( tDiffuse2, vUv );
-				vec4 v3 = texture2D( tDiffuse3, vUv );
-
+			uniform int renderType;
+			void getvel(in vec4 v1, in vec4 v2, in vec4 v3, out float u, out float v) {
 				float f1 = v1.r;
 				float f2 = v1.g;
 				float f3 = v1.b;
@@ -318,10 +336,47 @@
 				float f6 = v2.b;				 
 				float f7 = v3.r;
 				float f8 = v3.g;
+				u = f1+f2+f8-f4-f5-f6;
+				v = f2+f3+f4-f6-f7-f8;				
+				//return 3.0;
+			}
 
-				float ux = f1+f2+f8-f4-f5-f6;
-				float uy = f2+f3+f4-f6-f7-f8;
-				float velmag = 1000.*sqrt(0.*ux*ux+1.*uy*uy);// 10.*sqrt(1.*uy*uy+1.*ux*ux);
+			void main() {
+				vec4 v1 = texture2D( tDiffuse1, vUv );
+				vec4 v2 = texture2D( tDiffuse2, vUv );
+				vec4 v3 = texture2D( tDiffuse3, vUv );
+				float ux,uy;
+				getvel(v1,v2,v3,ux,uy);
+
+
+				float velmag = 0.;
+				if (renderType == 0) {
+					velmag = 5.*sqrt(ux*ux);// 10.*sqrt(1.*uy*uy+1.*ux*ux);
+				} else if ( renderType == 1 ) {
+					velmag = 5.*sqrt(uy*uy);
+				} else if ( renderType == 2 ) {
+					velmag = 5.*sqrt(ux*ux+uy*uy);
+				} else if ( renderType == 3 ) {
+					float uW, vW, uE, vE, uN, vN, uS, vS;
+					v1 = texture2D( tDiffuse1, vUv + vec2(1./256.,0.) );
+					v2 = texture2D( tDiffuse2, vUv + vec2(1./256.,0.) );
+					v3 = texture2D( tDiffuse3, vUv + vec2(1./256.,0.) );					
+					getvel(v1,v2,v3,uE,vE);
+					v1 = texture2D( tDiffuse1, vUv + vec2(-1./256.,0.) );
+					v2 = texture2D( tDiffuse2, vUv + vec2(-1./256.,0.) );
+					v3 = texture2D( tDiffuse3, vUv + vec2(-1./256.,0.) );					
+					getvel(v1,v2,v3,uW,vW);
+					v1 = texture2D( tDiffuse1, vUv + vec2(0.,1./256.) );
+					v2 = texture2D( tDiffuse2, vUv + vec2(0.,1./256.) );
+					v3 = texture2D( tDiffuse3, vUv + vec2(0.,1./256.) );					
+					getvel(v1,v2,v3,uN,vN);
+					v1 = texture2D( tDiffuse1, vUv + vec2(0.,-1./256.) );
+					v2 = texture2D( tDiffuse2, vUv + vec2(0.,-1./256.) );
+					v3 = texture2D( tDiffuse3, vUv + vec2(0.,-1./256.) );					
+					getvel(v1,v2,v3,uS,vS);
+					velmag = abs(100.* ( (vE-vW)-(uN-uS) ));
+
+				};
 				float a=(1.-velmag)/0.25;	//invert and group
 				int X= int(floor(a));	//this is the integer part
 				int Y= int(floor(255.*(a-float(X)))); //fractional part from 0 to 255
@@ -366,7 +421,9 @@
 
 			varying vec2 vUv;
 			uniform float time;
-			uniform float dt;
+			uniform float dtx;
+			uniform float dty;
+
 			uniform highp sampler2D tDiffuse3;
 
 			void main() {
@@ -374,11 +431,11 @@
 				if (time  == 0. )  {
 					gl_FragColor = vec4(1./9.,1./9.,1./9.,1.);
 				} else {
-					float h = - dt;
+					//float h = - dt;
 					//vec4 fVec = texture2D( tDiffuse3, vUv + vec2(h,0.));
-					float f1 = texture2D( tDiffuse3, vUv + vec2(h,0)).r;
-					float f2 = texture2D( tDiffuse3, vUv + vec2(h,h)).g;
-					float f3 = texture2D( tDiffuse3, vUv + vec2(0,h)).b;
+					float f1 = texture2D( tDiffuse3, vUv + vec2(dtx,0)).r;
+					float f2 = texture2D( tDiffuse3, vUv + vec2(dtx,dty)).g;
+					float f3 = texture2D( tDiffuse3, vUv + vec2(0,dty)).b;
 
 					gl_FragColor = vec4(f1, f2, f3 ,1.);
 				}
@@ -392,7 +449,9 @@
 
 			varying vec2 vUv;
 			uniform float time;
-			uniform float dt;
+			uniform float dtx;
+			uniform float dty;
+
 			uniform highp sampler2D tDiffuse3;
 
 			void main() {
@@ -400,10 +459,10 @@
 				if (time  == 0. )  {
 					gl_FragColor = vec4(1./9.,1./9.,1./9.,1.);
 				} else {
-					float h = - dt;
-					float f4 = texture2D( tDiffuse3, vUv + vec2(-h,h)).r;
-					float f5 = texture2D( tDiffuse3, vUv + vec2(-h,0)).g;
-					float f6 = texture2D( tDiffuse3, vUv + vec2(-h,-h)).b;
+					//float h = - dt;
+					float f4 = texture2D( tDiffuse3, vUv + vec2(-dtx,dty)).r;
+					float f5 = texture2D( tDiffuse3, vUv + vec2(-dtx,0)).g;
+					float f6 = texture2D( tDiffuse3, vUv + vec2(-dty,-dty)).b;
 
 					gl_FragColor = vec4(f4, f5, f6 ,1.);
 				}
@@ -417,7 +476,9 @@
 
 			varying vec2 vUv;
 			uniform float time;
-			uniform float dt;
+			uniform float dtx;
+			uniform float dty;
+
 			uniform highp sampler2D tDiffuse3;
 
 			void main() {
@@ -425,9 +486,9 @@
 				if (time  == 0. ) {
 					gl_FragColor = vec4(1./9.,1./9.,1./9.,1.);
 				} else {
-					float h = - dt;
-					float f7 = texture2D( tDiffuse3, vUv + vec2(0,-h)).r;
-					float f8 = texture2D( tDiffuse3, vUv + vec2(h,-h)).g;
+					//float h = - dt;
+					float f7 = texture2D( tDiffuse3, vUv + vec2(0,-dty)).r;
+					float f8 = texture2D( tDiffuse3, vUv + vec2(dtx,-dty)).g;
 					float f9 = texture2D( tDiffuse3, vUv).b;
 
 					gl_FragColor = vec4(f7, f8, f9 ,1.);
@@ -445,7 +506,7 @@
 
 			void main() {
 
-				if ( vUv.x < 0.6 && vUv.x > 0.5 && vUv.y > 0.5 && vUv.y < 0.6 ) {
+				if ( ( (vUv.x-0.5) * (vUv.x-0.5) + (vUv.y-0.5)*(vUv.y-0.5) ) < 0.025*0.025 ) {
 
 					gl_FragColor = vec4(1., 0., 0. ,1.);
 				}
@@ -464,7 +525,7 @@
 
 			void main() {
 
-				if ( vUv.x < 0.6 && vUv.x > 0.5 && vUv.y > 0.5 && vUv.y < 0.6 ) {
+				if ( ( (vUv.x-0.5) * (vUv.x-0.5) + (vUv.y-0.5)*(vUv.y-0.5) ) < 0.025*0.025 ) {
 					vec4 v2 = texture2D(tDiffuse2,vUv );
 					vec4 v3 = texture2D(tDiffuse3,vUv );
 					//float f4 = v2.r;
@@ -492,7 +553,7 @@
 
 			void main() {
 
-				if ( vUv.x < 0.6 && vUv.x > 0.5 && vUv.y > 0.5 && vUv.y < 0.6 ) {
+				if ( ( (vUv.x-0.5) * (vUv.x-0.5) + (vUv.y-0.5)*(vUv.y-0.5) ) < 0.025*0.025 ) {
 					vec4 v1 = texture2D(tDiffuse1,vUv );
 					vec4 v3 = texture2D(tDiffuse3,vUv );
 					//float f4 = v1.r;
@@ -520,7 +581,7 @@
 
 			void main() {
 
-				if ( vUv.x < 0.6 && vUv.x > 0.5 && vUv.y > 0.5 && vUv.y < 0.6 ) {
+				if ( ( (vUv.x-0.5) * (vUv.x-0.5) + (vUv.y-0.5)*(vUv.y-0.5) ) < 0.025*0.025 ) {
 					vec4 v1 = texture2D(tDiffuse1,vUv );
 					vec4 v2 = texture2D(tDiffuse2,vUv );
 					//float f1 = v1.r;

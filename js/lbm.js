@@ -16,11 +16,22 @@ var rtTexture1c, rtTexture2c, rtTexture3c;
 
 
 
-var delta = 0.002;
+var delta = 1.;
 var currTime = 0;
 init();
 animate();
 //var customWindow;
+function setRenderType(v) {
+  var bu = v.valueOf();
+  materialShow.uniforms.renderType.value = bu;
+}
+function setOmega(v) {
+  var bu = v.valueOf();
+  materialCompute1.uniforms.omega.value = bu;
+  materialCompute2.uniforms.omega.value = bu;
+  materialCompute3.uniforms.omega.value = bu;
+}
+
 function init() {
 
 	container = document.getElementById( 'container' );
@@ -77,12 +88,12 @@ function init() {
 
 		vertexShader: document.getElementById( 'vertexShader' ).textContent,
 		fragmentShader: document.getElementById( 'fragmentShow' ).textContent,
-		uniforms: {tDiffuse1: { type: "t", value: rtTexture1c },tDiffuse2: { type: "t", value: rtTexture2c },tDiffuse3: { type: "t", value: rtTexture3c }  } }
+		uniforms: { renderType:{ type: "i", value: 0 }, tDiffuse1: { type: "t", value: rtTexture1c },tDiffuse2: { type: "t", value: rtTexture2c },tDiffuse3: { type: "t", value: rtTexture3c }  } }
 	);
 
 	materialCompute1 = new THREE.ShaderMaterial( {
 
-		uniforms: { tDiffuse1: { type: "t", value: rtTexture1 } , currTime: {type: "f", value:0} ,
+		uniforms: { tDiffuse1: { type: "t", value: rtTexture1 } , currTime: {type: "f", value:0} , omega: {type: "f", value:1.25},
 		tDiffuse2: { type: "t", value: rtTexture2 },
 		tDiffuse3: { type: "t", value: rtTexture3 } },
 		vertexShader: document.getElementById( 'vertexShader' ).textContent,
@@ -91,7 +102,7 @@ function init() {
 	} );
 	materialCompute2 = new THREE.ShaderMaterial( {
 
-		uniforms: {tDiffuse1: { type: "t", value: rtTexture1 } , currTime: {type: "f", value:0},
+		uniforms: {tDiffuse1: { type: "t", value: rtTexture1 } , currTime: {type: "f", value:0}, omega: {type: "f", value:1.25},
 		tDiffuse2: { type: "t", value: rtTexture2 },
 		tDiffuse3: { type: "t", value: rtTexture3 } },
 		vertexShader: document.getElementById( 'vertexShader' ).textContent,
@@ -100,7 +111,7 @@ function init() {
 	} );			
 	materialCompute3 = new THREE.ShaderMaterial( {
 
-		uniforms: {tDiffuse1: { type: "t", value: rtTexture1 } ,currTime: {type: "f", value:0},
+		uniforms: {tDiffuse1: { type: "t", value: rtTexture1 } ,currTime: {type: "f", value:0}, omega: {type: "f", value:1.25},
 		tDiffuse2: { type: "t", value: rtTexture2 },
 		tDiffuse3: { type: "t", value: rtTexture3 } },
 		vertexShader: document.getElementById( 'vertexShader' ).textContent,
@@ -110,7 +121,7 @@ function init() {
 
 	materialStep1 = new THREE.ShaderMaterial( {
 
-		uniforms: { time: { type: "f", value: 0.0 } , dt: { type: "f", value: 0.1},
+		uniforms: { time: { type: "f", value: 0.0 } , dtx: { type: "f", value: 0.1}, dty: { type: "f", value: 0.1},
 		tDiffuse3: { type: "t", value: rtTexture1 } },
 		vertexShader: document.getElementById( 'vertexShader' ).textContent,
 		fragmentShader: document.getElementById( 'fragmentStep1' ).textContent,
@@ -120,7 +131,7 @@ function init() {
 	} );
 	materialStep2 = new THREE.ShaderMaterial( {
 
-		uniforms: { time: { type: "f", value: 0.0 } , dt: { type: "f", value: 0.1},
+		uniforms: { time: { type: "f", value: 0.0 } , dtx: { type: "f", value: 0.1}, dty: { type: "f", value: 0.1},
 		tDiffuse3: { type: "t", value: rtTexture2 } },
 		vertexShader: document.getElementById( 'vertexShader' ).textContent,
 		fragmentShader: document.getElementById( 'fragmentStep2' ).textContent,
@@ -130,7 +141,7 @@ function init() {
 	} );
 	materialStep3 = new THREE.ShaderMaterial( {
 
-		uniforms: { time: { type: "f", value: 0.0 } , dt: { type: "f", value: 0.1},
+		uniforms: { time: { type: "f", value: 0.0 } , dtx: { type: "f", value: 0.1}, dty: { type: "f", value: 0.1},
 		tDiffuse3: { type: "t", value: rtTexture3 } },
 		vertexShader: document.getElementById( 'vertexShader' ).textContent,
 		fragmentShader: document.getElementById( 'fragmentStep3' ).textContent,
@@ -201,7 +212,7 @@ function init() {
 
 	} );
 
-	var plane = new THREE.PlaneBufferGeometry( customWindow.innerWidth, customWindow.innerHeight );
+	var plane = new THREE.PlaneGeometry( customWindow.innerWidth, customWindow.innerHeight );
 
 	quad = new THREE.Mesh( plane, materialMesh );
 	sceneMesh.add( quad );
@@ -242,9 +253,13 @@ function init() {
 	renderer.setSize( customWindow.innerWidth, customWindow.innerHeight );
 	renderer.autoClear = false;
 
-	materialStep1.uniforms.dt.value  = 1. / customWindow.innerHeight;
-	materialStep2.uniforms.dt.value  = 1. / customWindow.innerHeight;
-	materialStep3.uniforms.dt.value  = 1. / customWindow.innerHeight;
+	materialStep1.uniforms.dtx.value  = 1. / customWindow.innerWidth;
+	materialStep2.uniforms.dtx.value  = 1. / customWindow.innerWidth;
+	materialStep3.uniforms.dtx.value  = 1. / customWindow.innerWidth;
+
+	materialStep1.uniforms.dty.value  = 1. / customWindow.innerHeight;
+	materialStep2.uniforms.dty.value  = 1. / customWindow.innerHeight;
+	materialStep3.uniforms.dty.value  = 1. / customWindow.innerHeight;
 
 	container.appendChild( renderer.domElement );
 
@@ -273,6 +288,14 @@ function render() {
 	};
 	// Render first scene into texture
 
+	renderer.render( sceneCompute1, cameraRTT, rtTexture1c, true );
+	renderer.render( sceneCompute2, cameraRTT, rtTexture2c, true );
+	renderer.render( sceneCompute3, cameraRTT, rtTexture3c, true );
+
+	renderer.render( sceneCopy1, cameraRTT, rtTexture1, true );
+	renderer.render( sceneCopy2, cameraRTT, rtTexture2, true );
+	renderer.render( sceneCopy3, cameraRTT, rtTexture3, true );
+
 	renderer.render( sceneStep1, cameraRTT, rtTexture1c, true );
 	renderer.render( sceneCopy1, cameraRTT, rtTexture1, true );
 	
@@ -280,15 +303,6 @@ function render() {
 	renderer.render( sceneCopy2, cameraRTT, rtTexture2, true );
 	
 	renderer.render( sceneStep3, cameraRTT, rtTexture3c, true );
-	renderer.render( sceneCopy3, cameraRTT, rtTexture3, true );
-
-
-	renderer.render( sceneCompute1, cameraRTT, rtTexture1c, true );
-	renderer.render( sceneCompute2, cameraRTT, rtTexture2c, true );
-	renderer.render( sceneCompute3, cameraRTT, rtTexture3c, true );
-
-	renderer.render( sceneCopy1, cameraRTT, rtTexture1, true );
-	renderer.render( sceneCopy2, cameraRTT, rtTexture2, true );
 	renderer.render( sceneCopy3, cameraRTT, rtTexture3, true );
 
 	renderer.render( sceneBounceback1, cameraRTT, rtTexture1c, true );
