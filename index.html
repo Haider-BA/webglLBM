@@ -77,14 +77,37 @@
 				float f7 = v3.r;
 				float f8 = v3.g;
 				float f9 = v3.b;
-				
+				if (currTime == 0.) {
+					f1 = 1./9.;
+					f2 = 1./9.;
+					f3 = 1./9.;
+					f4 = 1./9.;
+					f5 = 1./9.;
+					f6 = 1./9.;
+					f7 = 1./9.;
+					f8 = 1./9.;
+					f9 = 1./9.;
+				};				
 				float density = f1+f2+f3+f4+f5+f6+f7+f8+f9;
 				float invDensity = 1./ density;
 				float ux = invDensity *(f1+f2+f8-f4-f5-f6);
 				float uy = invDensity *(f2+f3+f4-f6-f7-f8);
-				if (currTime > 0. &&(abs(vUv.x - 0.5/512.) < 1e-6)) {
-					ux += .01;
-				};
+
+				if (abs(vUv.x - 0.5/512.) < 1e-6) {
+					ux = 0.5 * (vUv.y-vUv.y*vUv.y);
+					uy = 0.0;
+					density = (1./(1.-ux) )* (f3+f7+f9+2.*(f4+f5+f6) );
+					f1 = f5 + (2./3.)*density*ux;
+					f2 = f6 + 0.5*(f7-f3)+0.5*density*uy+(1./6.)*density*ux;
+					f8 = f4 + 0.5*(f3-f7)-0.5*density*uy+(1./6.)*density*ux;
+				} else if (abs(vUv.x - ( 1. - 0.5/512. ) )  <  1e-6) {
+					density = 1.;//(1./(1.-ux) * (f3+)f7+f9+2*(f4+f5+f6) );
+					ux = -1. + (1./(density)) * (f3+f7+f9+2.*(f1+f2+f8) );
+					uy = 0.0;
+					f5 = f1 - (2./3.)*density*ux;
+					f6 = f2 + 0.5*(f3-f7) - 0.5*density*uy-(1./6.)*density*ux;
+					f4 = f8 + 0.5*(f7-f3) + 0.5*density*uy-(1./6.)*density*ux;
+				};				
 			
 				float usqu = ux*ux + uy*uy;
 				float uc2 = ux+uy;
@@ -95,7 +118,7 @@
 				float feq1 = t2*density*(1. + ux/c_squ+0.5*(ux/c_squ)*(ux/c_squ)- usqu/(2.*c_squ));
 				float feq3 = t2*density*(1. + uy/c_squ+0.5*(uy/c_squ)*(uy/c_squ) - usqu/(2.*c_squ));
 				float feq2 = t3*density*(1. + uc2/c_squ+0.5*(uc2/c_squ)*(uc2/c_squ)- usqu/(2.*c_squ));
-				if ( ( (vUv.x-0.5) * (vUv.x-0.5) + (vUv.y-0.5)*(vUv.y-0.5) ) < 0.025*0.025 ) {
+				if ( false && ( (vUv.x-0.5) * (vUv.x-0.5) + (vUv.y-0.5)*(vUv.y-0.5) ) < 0.025*0.025 ) {
 					
 					gl_FragColor = vec4(f1, f2, f3, 1.);
 				} 	else {
@@ -137,14 +160,38 @@
 				float f7 = v3.r;
 				float f8 = v3.g;
 				float f9 = v3.b;
+				if (currTime == 0.) {
+					f1 = 1./9.;
+					f2 = 1./9.;
+					f3 = 1./9.;
+					f4 = 1./9.;
+					f5 = 1./9.;
+					f6 = 1./9.;
+					f7 = 1./9.;
+					f8 = 1./9.;
+					f9 = 1./9.;
+				};
 				
 				float density = f1+f2+f3+f4+f5+f6+f7+f8+f9;
 				float invDensity = 1./ density;
 				float ux = invDensity *(f1+f2+f8-f4-f5-f6);
 				float uy = invDensity *(f2+f3+f4-f6-f7-f8);				
-				if (currTime > 0. && (abs(vUv.x - 0.5/512.) < 1e-6)) {
-					ux += .01;
-				};
+
+				if (abs(vUv.x - 0.5/512.) < 1e-6) {
+					ux = 0.5 * (vUv.y-vUv.y*vUv.y);
+					uy = 0.0;
+					density = (1./(1.-ux) )* (f3+f7+f9+2.*(f4+f5+f6) );
+					f1 = f5 + (2./3.)*density*ux;
+					f2 = f6 + 0.5*(f7-f3)+0.5*density*uy+(1./6.)*density*ux;
+					f8 = f4 + 0.5*(f3-f7)-0.5*density*uy+(1./6.)*density*ux;
+				} else if (abs(vUv.x - ( 1. - 0.5/512. ) )  <  1e-6) {
+					density = 1.;//(1./(1.-ux) * (f3+)f7+f9+2*(f4+f5+f6) );
+					ux = -1. + (1./(density)) * (f3+f7+f9+2.*(f1+f2+f8) );
+					uy = 0.0;
+					f5 = f1 - (2./3.)*density*ux;
+					f6 = f2 + 0.5*(f3-f7) - 0.5*density*uy-(1./6.)*density*ux;
+					f4 = f8 + 0.5*(f7-f3) + 0.5*density*uy-(1./6.)*density*ux;
+				};			
 			
 				float usqu = ux*ux + uy*uy;
 				float uc2 = ux+uy;
@@ -158,7 +205,7 @@
 				float ff4 = omega * feq4 + (1. - omega) * f4;
 				float ff5 = omega * feq5 + (1. - omega) * f5;
 				float ff6 = omega * feq6 + (1. - omega) * f6;
-				if ( ( (vUv.x-0.5) * (vUv.x-0.5) + (vUv.y-0.5)*(vUv.y-0.5) ) < 0.025*0.025 ) {
+				if ( false && ( (vUv.x-0.5) * (vUv.x-0.5) + (vUv.y-0.5)*(vUv.y-0.5) ) < 0.025*0.025 ) {
 					
 					gl_FragColor = vec4(f4, f5, f6, 1.);
 				} 	else {
@@ -197,14 +244,38 @@
 				float f7 = v3.r;
 				float f8 = v3.g;
 				float f9 = v3.b;
-				
+				if (currTime == 0.) {
+					f1 = 1./9.;
+					f2 = 1./9.;
+					f3 = 1./9.;
+					f4 = 1./9.;
+					f5 = 1./9.;
+					f6 = 1./9.;
+					f7 = 1./9.;
+					f8 = 1./9.;
+					f9 = 1./9.;
+				};				
 				float density = f1+f2+f3+f4+f5+f6+f7+f8+f9;
 				float invDensity = 1./ density;
 				float ux = invDensity *(f1+f2+f8-f4-f5-f6);
 				float uy = invDensity *(f2+f3+f4-f6-f7-f8);
-				if (currTime > 0. && (abs(vUv.x - 0.5/512.) < 1e-6) ) {
-					ux += .01;
-				};
+
+				if (abs(vUv.x - 0.5/512.) < 1e-6) {
+					ux = 0.5 * (vUv.y-vUv.y*vUv.y);
+					uy = 0.0;
+					density = (1./(1.-ux) )* (f3+f7+f9+2.*(f4+f5+f6) );
+					f1 = f5 + (2./3.)*density*ux;
+					f2 = f6 + 0.5*(f7-f3)+0.5*density*uy+(1./6.)*density*ux;
+					f8 = f4 + 0.5*(f3-f7)-0.5*density*uy+(1./6.)*density*ux;
+				} else if (abs(vUv.x - ( 1. - 0.5/512. ) )  <  1e-6) {
+					density = 1.;//(1./(1.-ux) * (f3+)f7+f9+2*(f4+f5+f6) );
+					ux = -1. + (1./(density)) * (f3+f7+f9+2.*(f1+f2+f8) );
+					uy = 0.0;
+					f5 = f1 - (2./3.)*density*ux;
+					f6 = f2 + 0.5*(f3-f7) - 0.5*density*uy-(1./6.)*density*ux;
+					f4 = f8 + 0.5*(f7-f3) + 0.5*density*uy-(1./6.)*density*ux;
+				};		
+
 				float usqu = ux*ux + uy*uy;
 				float uc2 = ux+uy;
 				float uc4 = -ux+uy;
@@ -216,7 +287,7 @@
 				float ff7 = omega * feq7 + (1. - omega) * f7;
 				float ff8 = omega * feq8 + (1. - omega) * f8;
 				float ff9 = omega * feq9 + (1. - omega) * f9;				
-				if ( ( (vUv.x-0.5) * (vUv.x-0.5) + (vUv.y-0.5)*(vUv.y-0.5) ) < 0.025*0.025 ) {	
+				if ( false && ( (vUv.x-0.5) * (vUv.x-0.5) + (vUv.y-0.5)*(vUv.y-0.5) ) < 0.025*0.025 ) {	
 					gl_FragColor = vec4(f7, f8, f9, 1.);
 				} 	else {
 				gl_FragColor = vec4(ff7,ff8,ff9,1.);
