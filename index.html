@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 	<head>
-		<title>three.js webgl - render-to-texture</title>
+		<title>webGLlbm</title>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 		<style>
@@ -32,14 +32,13 @@
 		
 		<!-- <br> Render type<input size="2" value="0" onchange="setRenderType( this.value )"> -->
 		Scalar field type: <select onchange="setRenderType( this.value )">
-		  <option value="0">x</option>
-		  <option value="1">y</option>
-		  <option value="2">mag</option>
+		  <option value="0">u</option>
+		  <option value="1">v</option>
+		  <option value="2">magnitude</option>
 		  <option value="3">curl</option>
 
 		</select>		
-		<br> Convergence parameter <input size="2" value="0.25" onchange="setOmega( this.value )">
-		<br> Scale output by <input type="range" min="1.01" max="6.01" value="2.01" step="0.01" onchange="setScaleOutput( this.value )" />
+		<br> Scale output by <input type="range" min="1.01" max="6.01" value="2.01" step="0.001" onchange="setScaleOutput( this.value )" />
 
 		<!-- <script src="./js/three.min.js"></script> -->
 		<script src="http://ajax.googleapis.com/ajax/libs/threejs/r67/three.min.js"></script>
@@ -94,7 +93,7 @@
 				float uy = invDensity *(f2+f3+f4-f6-f7-f8);
 
 				if (abs(vUv.x - 0.5/512.) < 1e-6) {
-					ux = 0.5 * (vUv.y-vUv.y*vUv.y);
+					ux = 0.75 * (vUv.y-vUv.y*vUv.y);
 					uy = 0.0;
 					density = (1./(1.-ux) )* (f3+f7+f9+2.*(f4+f5+f6) );
 					f1 = f5 + (2./3.)*density*ux;
@@ -178,7 +177,7 @@
 				float uy = invDensity *(f2+f3+f4-f6-f7-f8);				
 
 				if (abs(vUv.x - 0.5/512.) < 1e-6) {
-					ux = 0.5 * (vUv.y-vUv.y*vUv.y);
+					ux = 0.75 * (vUv.y-vUv.y*vUv.y);
 					uy = 0.0;
 					density = (1./(1.-ux) )* (f3+f7+f9+2.*(f4+f5+f6) );
 					f1 = f5 + (2./3.)*density*ux;
@@ -261,7 +260,7 @@
 				float uy = invDensity *(f2+f3+f4-f6-f7-f8);
 
 				if (abs(vUv.x - 0.5/512.) < 1e-6) {
-					ux = 0.5 * (vUv.y-vUv.y*vUv.y);
+					ux = 0.75 * (vUv.y-vUv.y*vUv.y);
 					uy = 0.0;
 					density = (1./(1.-ux) )* (f3+f7+f9+2.*(f4+f5+f6) );
 					f1 = f5 + (2./3.)*density*ux;
@@ -326,9 +325,13 @@
 			precision highp int;
 			varying vec2 vUv;
 			uniform highp float scaleOutput;
+			uniform float dtx;
+			uniform float dty;
 			uniform highp sampler2D tDiffuse1;
 			uniform highp sampler2D tDiffuse2;
 			uniform highp sampler2D tDiffuse3;
+			uniform highp sampler2D tMask;
+			
 			uniform int renderType;
 			void getvel(in vec4 v1, in vec4 v2, in vec4 v3, out float u, out float v) {
 				float f1 = v1.r;
@@ -358,21 +361,21 @@
 					velmag = 5.*sqrt(ux*ux+uy*uy);
 				} else if ( renderType == 3 ) {
 					float uW, vW, uE, vE, uN, vN, uS, vS;
-					v1 = texture2D( tDiffuse1,vec2(1.,1.) -  vUv + vec2(1./256.,0.) );
-					v2 = texture2D( tDiffuse2,vec2(1.,1.) -  vUv + vec2(1./256.,0.) );
-					v3 = texture2D( tDiffuse3,vec2(1.,1.) -  vUv + vec2(1./256.,0.) );					
+					v1 = texture2D( tDiffuse1,vec2(1.,1.) -  vUv + vec2(dtx,0.) );
+					v2 = texture2D( tDiffuse2,vec2(1.,1.) -  vUv + vec2(dtx,0.) );
+					v3 = texture2D( tDiffuse3,vec2(1.,1.) -  vUv + vec2(dtx,0.) );					
 					getvel(v1,v2,v3,uE,vE);
-					v1 = texture2D( tDiffuse1,vec2(1.,1.) -  vUv + vec2(-1./256.,0.) );
-					v2 = texture2D( tDiffuse2,vec2(1.,1.) -  vUv + vec2(-1./256.,0.) );
-					v3 = texture2D( tDiffuse3,vec2(1.,1.) -  vUv + vec2(-1./256.,0.) );					
+					v1 = texture2D( tDiffuse1,vec2(1.,1.) -  vUv + vec2(-dtx,0.) );
+					v2 = texture2D( tDiffuse2,vec2(1.,1.) -  vUv + vec2(-dtx,0.) );
+					v3 = texture2D( tDiffuse3,vec2(1.,1.) -  vUv + vec2(-dtx,0.) );					
 					getvel(v1,v2,v3,uW,vW);
-					v1 = texture2D( tDiffuse1,vec2(1.,1.) -  vUv + vec2(0.,1./256.) );
-					v2 = texture2D( tDiffuse2,vec2(1.,1.) -  vUv + vec2(0.,1./256.) );
-					v3 = texture2D( tDiffuse3,vec2(1.,1.) -  vUv + vec2(0.,1./256.) );					
+					v1 = texture2D( tDiffuse1,vec2(1.,1.) -  vUv + vec2(0.,dty) );
+					v2 = texture2D( tDiffuse2,vec2(1.,1.) -  vUv + vec2(0.,dty) );
+					v3 = texture2D( tDiffuse3,vec2(1.,1.) -  vUv + vec2(0.,dty) );					
 					getvel(v1,v2,v3,uN,vN);
-					v1 = texture2D( tDiffuse1,vec2(1.,1.) -  vUv + vec2(0.,-1./256.) );
-					v2 = texture2D( tDiffuse2,vec2(1.,1.) -  vUv + vec2(0.,-1./256.) );
-					v3 = texture2D( tDiffuse3,vec2(1.,1.) -  vUv + vec2(0.,-1./256.) );					
+					v1 = texture2D( tDiffuse1,vec2(1.,1.) -  vUv + vec2(0.,-dty) );
+					v2 = texture2D( tDiffuse2,vec2(1.,1.) -  vUv + vec2(0.,-dty) );
+					v3 = texture2D( tDiffuse3,vec2(1.,1.) -  vUv + vec2(0.,-dty) );					
 					getvel(v1,v2,v3,uS,vS);
 					velmag = abs(100.* ( (vE-vW)-(uN-uS) ));
 				};
@@ -405,9 +408,13 @@
 				    g=0.;
 				    b=0.;
 				}
+				if (texture2D( tMask,vec2(1.,1.) -  vUv).r > 0.  ) {
+					gl_FragColor = vec4(0.,0.,0.,1.);
+				} else {				
 				//if (velmag > 1.) { velmag = 1; };
 				gl_FragColor = vec4(r/255., g/255.,b/255., 1.);
 				//gl_FragColor = vec4(velmag, 0., 1. - velmag, 1.);
+			}
 			}
 		</script>
 
@@ -476,9 +483,15 @@
 			precision highp float;
 			precision highp int;
 			varying vec2 vUv;
+			uniform float dtx;
+			uniform float dty;
+
 			void main() {
-				if ( ( (vUv.x-0.5) * (vUv.x-0.5) + (vUv.y-0.5)*(vUv.y-0.5) ) < 0.025*0.025 ) {
+				if ( ( (vUv.x-0.75)/0.25 * (vUv.x-0.75)/0.25 + (vUv.y-0.505)*(vUv.y-0.505) ) < 0.25*0.25 ) {
 					gl_FragColor = vec4(1., 0., 0. ,1.);
+				} else if (  vUv.y < float(dty) + 1e-6 || vUv.y > 1. - float(dty) - 1e-6 ) {
+					gl_FragColor = vec4(1., 0., 0. ,1.);
+
 				}
 			}
 		</script>
@@ -489,8 +502,9 @@
 			uniform highp sampler2D tDiffuse1;
 			uniform highp sampler2D tDiffuse2;
 			uniform highp sampler2D tDiffuse3;
+			uniform highp sampler2D tMask;
 			void main() {
-				if ( vUv.y < 1e-6+0.5/256. || vUv.y > 1.0 - 1e-6 -0.5/256.) {
+				if ( texture2D(tMask, vUv).r > 0.  ) {
 					vec4 v2 = texture2D(tDiffuse2,vUv );
 					vec4 v3 = texture2D(tDiffuse3,vUv );
 					//float f4 = v2.r;
@@ -512,8 +526,9 @@
 			uniform highp sampler2D tDiffuse1;
 			uniform highp sampler2D tDiffuse2;
 			uniform highp sampler2D tDiffuse3;
+			uniform highp sampler2D tMask;
 			void main() {
-				if ( vUv.y < 1e-6+0.5/256. || vUv.y > 1.0 - 1e-6 -0.5/256.) {
+				if ( texture2D(tMask, vUv).r > 0.  ) {
 					vec4 v1 = texture2D(tDiffuse1,vUv );
 					vec4 v3 = texture2D(tDiffuse3,vUv );
 					//float f4 = v1.r;
@@ -535,8 +550,9 @@
 			uniform highp sampler2D tDiffuse1;
 			uniform highp sampler2D tDiffuse2;
 			uniform highp sampler2D tDiffuse3;
+			uniform highp sampler2D tMask;
 			void main() {
-				if ( vUv.y < 1e-6+0.5/256. || vUv.y > 1.0 - 1e-6 -0.5/256.) {
+				if ( texture2D(tMask, vUv).r > 0.  ) {
 					vec4 v1 = texture2D(tDiffuse1,vUv );
 					vec4 v2 = texture2D(tDiffuse2,vUv );
 					//float f1 = v1.r;
