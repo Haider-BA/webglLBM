@@ -41,7 +41,7 @@ function init() {
 	container = document.getElementById( 'container' );
 	customWindow = Object();
 	customWindow.innerWidth = 512;
-	customWindow.innerHeight = 256;
+	customWindow.innerHeight = 128;
 	cameraRTT = new THREE.OrthographicCamera( customWindow.innerWidth / - 2, customWindow.innerWidth / 2, customWindow.innerHeight / 2, customWindow.innerHeight / - 2, -1000, 1000 );
 	cameraRTT.position.z = 100;
 
@@ -92,17 +92,18 @@ function init() {
 
 		vertexShader: document.getElementById( 'vertexShader' ).textContent,
 		fragmentShader: document.getElementById( 'fragmentShow' ).textContent,
-		uniforms: { renderType:{ type: "i", value: 0 }, 
+		uniforms: { renderType:{ type: "i", value: 0 } , dtx: { type: "f", value: 0.1}, dty: { type: "f", value: 0.1}, 
 		tDiffuse1: { type: "t", value: rtTexture1c },
 		tDiffuse2: { type: "t", value: rtTexture2c },
 		tDiffuse3: { type: "t", value: rtTexture3c },
+		tMask: { type: "t", value: meshMaskTexture },
 		scaleOutput: { type: "f", value: Math.log(2.) }
 		  } }
 	);
 
 	materialCompute1 = new THREE.ShaderMaterial( {
 
-		uniforms: { tDiffuse1: { type: "t", value: rtTexture1 } , currTime: {type: "f", value:0} , omega: {type: "f", value:1.25},
+		uniforms: { tDiffuse1: { type: "t", value: rtTexture1 } , currTime: {type: "f", value:0} , omega: {type: "f", value:1.45},
 		tDiffuse2: { type: "t", value: rtTexture2 },
 		tDiffuse3: { type: "t", value: rtTexture3 },
 		BCType: {type: "i", value: 0 } },
@@ -112,7 +113,7 @@ function init() {
 	} );
 	materialCompute2 = new THREE.ShaderMaterial( {
 
-		uniforms: {tDiffuse1: { type: "t", value: rtTexture1 } , currTime: {type: "f", value:0}, omega: {type: "f", value:1.25},
+		uniforms: {tDiffuse1: { type: "t", value: rtTexture1 } , currTime: {type: "f", value:0}, omega: {type: "f", value:1.45},
 		tDiffuse2: { type: "t", value: rtTexture2 },
 		tDiffuse3: { type: "t", value: rtTexture3 },
 		BCType: {type: "i", value: 0 } }, 
@@ -122,7 +123,7 @@ function init() {
 	} );			
 	materialCompute3 = new THREE.ShaderMaterial( {
 
-		uniforms: {tDiffuse1: { type: "t", value: rtTexture1 } ,currTime: {type: "f", value:0}, omega: {type: "f", value:1.25},
+		uniforms: {tDiffuse1: { type: "t", value: rtTexture1 } ,currTime: {type: "f", value:0}, omega: {type: "f", value:1.45},
 		tDiffuse2: { type: "t", value: rtTexture2 },
 		tDiffuse3: { type: "t", value: rtTexture3 },
 		BCType: {type: "i", value: 0 } },
@@ -189,7 +190,7 @@ function init() {
 
 	} );		
 	materialMesh = new THREE.ShaderMaterial( {
-
+		uniforms: { dtx: { type: "f", value: 0.1}, dty: { type: "f", value: 0.1}},
 		vertexShader: document.getElementById( 'vertexShader' ).textContent,
 		fragmentShader: document.getElementById( 'fragmentInitMesh' ).textContent,
 
@@ -200,7 +201,8 @@ function init() {
 
 		uniforms: {tDiffuse1: { type: "t", value: rtTexture1 },
 		tDiffuse2: { type: "t", value: rtTexture2 },
-		tDiffuse3: { type: "t", value: rtTexture3 } },
+		tDiffuse3: { type: "t", value: rtTexture3 },
+		tMask: { type: "t", value: meshMaskTexture } },
 		vertexShader: document.getElementById( 'vertexShader' ).textContent,
 		fragmentShader: document.getElementById( 'fragmentBounceback1' ).textContent,
 
@@ -209,7 +211,8 @@ function init() {
 
 		uniforms: {tDiffuse1: { type: "t", value: rtTexture1 },
 		tDiffuse2: { type: "t", value: rtTexture2 },
-		tDiffuse3: { type: "t", value: rtTexture3 } },
+		tDiffuse3: { type: "t", value: rtTexture3 },
+		tMask: { type: "t", value: meshMaskTexture } },
 		vertexShader: document.getElementById( 'vertexShader' ).textContent,
 		fragmentShader: document.getElementById( 'fragmentBounceback2' ).textContent,
 
@@ -218,7 +221,8 @@ function init() {
 
 		uniforms: {tDiffuse1: { type: "t", value: rtTexture1 },
 		tDiffuse2: { type: "t", value: rtTexture2 },
-		tDiffuse3: { type: "t", value: rtTexture3 } },
+		tDiffuse3: { type: "t", value: rtTexture3 },
+		tMask: { type: "t", value: meshMaskTexture } },
 		vertexShader: document.getElementById( 'vertexShader' ).textContent,
 		fragmentShader: document.getElementById( 'fragmentBounceback3' ).textContent,
 
@@ -274,14 +278,20 @@ function init() {
 	materialStep2.uniforms.dty.value  = 1. / customWindow.innerHeight;
 	materialStep3.uniforms.dty.value  = 1. / customWindow.innerHeight;
 
+	materialShow.uniforms.dtx.value  = 1. / customWindow.innerWidth;
+	materialShow.uniforms.dty.value  = 1. / customWindow.innerHeight;	
+
+	materialMesh.uniforms.dtx.value  = 1. / customWindow.innerWidth;
+	materialMesh.uniforms.dty.value  = 1. / customWindow.innerHeight;	
+
 	materialShow.uniforms.scaleOutput.value = Math.log(2.);
 
 	container.appendChild( renderer.domElement );
 
-	//stats = new Stats();
-	//stats.domElement.style.position = 'absolute';
-	//stats.domElement.style.top = '0px';
-	//container.appendChild( stats.domElement );
+	stats = new Stats();
+	stats.domElement.style.position = 'absolute';
+	stats.domElement.style.top = '0px';
+	container.appendChild( stats.domElement );
 
 }
 
