@@ -5,7 +5,7 @@ var container, stats, materialCopy, materialStep, materialShow;
 
 var cameraRTT, camera, sceneStep1, sceneStep2, sceneStep3, sceneShow, scene, renderer, zmesh1, zmesh2, sceneCopy1, sceneCopy2, sceneCopy3;
 var sceneCompute1, sceneCompute2 , sceneCompute3, sceneMesh  ;
-var sceneBounceback1, sceneBounceback2, sceneBounceback3;
+var sceneBounceback1, sceneBounceback2, sceneBounceback3, sceneParticle;
 
 var mouseX = 0, mouseY = 0;
 
@@ -15,9 +15,76 @@ var rtTexture1, rtTexture2, rtTexture3;
 var rtTexture1c, rtTexture2c, rtTexture3c;
 
 
-
+var triangle,plane;
 var delta = 1.;
 var currTime = 0;
+document.addEventListener( 'mousedown', onDocumentMouseDown, false );
+
+
+
+function onDocumentMouseDown( event ) {
+	//var projector = new THREE.Projector();
+	var canvas = document.getElementById( 'container' );
+	var xRatio = window.innerWidth/customWindow.innerWidth;
+	var yRatio = window.innerHeight/customWindow.innerHeight;
+	var offsetTop = canvas.offsetTop;
+	var offsetLeft = canvas.offsetLeft;
+	
+	var vector = new THREE.Vector3(
+	    ( ((event.clientX-0) / window.innerWidth ) * 2 - 1)*xRatio,
+	    (- ( (event.clientY) / window.innerHeight  ) * 2  + 1)*yRatio + (offsetTop/3)/yRatio-5,
+	    .5 );
+	var vector2 = new THREE.Vector3(
+	    ( event.clientX / window.innerWidth ) * 2 - 1,
+	    - ( event.clientY / window.innerHeight ) * 2 + 1,
+	    0.5 );	
+	//console.log( yRatio );
+	//console.log( xRatio );
+	//console.log( offsetTop );
+	//console.log( offsetLeft );
+
+	//console.log(window.innerWidth);
+	//console.log(window.innerHeight);
+
+	//console.log( canvas.scrollWidth );
+	//console.log( canvas.scrollHeight ); 
+	console.log(vector2);
+	// use picking ray since it's an orthographic camera
+	//console.log("picking")
+	ballSprite = new THREE.Sprite(  );
+	ballSprite.scale.set( 3,3,1 );
+	ballSprite.position.set( 256*vector.x, 64*vector.y, 0 );
+	sceneParticle.add( ballSprite );	
+	
+	//var ray = projector.pickingRay( vector, cameraRTT );
+
+//	var intersects = ray.intersectObjects( sceneMesh );
+
+/*raycaster = new THREE.Raycaster();
+var vector3 = vector.clone().unproject( cameraRTT );
+var direction = new THREE.Vector3( 0, 0, -1 ).transformDirection( cameraRTT.matrixWorld );
+raycaster.set( vector3, direction );
+var intersects = raycaster.intersectObject( sceneMesh );
+	if ( intersects.length > 0 ) {
+		console.log("1")
+
+	    console.log( intersects[ 0 ] );
+
+
+	}
+//	ray = projector.pickingRay( vector2, cameraRTT );
+
+//	intersects = ray.intersectObjects( sceneMesh );
+
+	if ( intersects.length > 0 ) {
+		console.log("2")
+
+	    console.log( intersects[ 0 ] );
+
+
+	}	
+	*/
+}
 init();
 animate();
 //var customWindow;
@@ -42,9 +109,12 @@ function init() {
 	customWindow = Object();
 	customWindow.innerWidth = 512;
 	customWindow.innerHeight = 128;
-	cameraRTT = new THREE.OrthographicCamera( customWindow.innerWidth / - 2, customWindow.innerWidth / 2, customWindow.innerHeight / 2, customWindow.innerHeight / - 2, -1000, 1000 );
-	cameraRTT.position.z = 100;
 
+	cameraRTT = new THREE.OrthographicCamera( customWindow.innerWidth / - 2, customWindow.innerWidth / 2, customWindow.innerHeight / 2, customWindow.innerHeight / - 2, -1000, 1000 );
+	//cameraRTT.position.z = 999;
+	//cameraRTT = new THREE.PerspectiveCamera( 90, window.innerWidth / window.innerHeight, 1, 1000 );
+
+	console.log($('#container'));
 	sceneStep1 = new THREE.Scene();
 	sceneCopy1 = new THREE.Scene();
 	sceneStep2 = new THREE.Scene();
@@ -59,6 +129,7 @@ function init() {
 	sceneBounceback3 = new THREE.Scene();	
 	sceneShow = new THREE.Scene();
 	sceneMesh = new THREE.Scene();
+	sceneParticle = new THREE.Scene();
 
 	rtTexture1 = new THREE.WebGLRenderTarget( customWindow.innerWidth, customWindow.innerHeight, { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, format: THREE.RGBFormat, type: THREE.FloatType } );
 	rtTexture2 = new THREE.WebGLRenderTarget( customWindow.innerWidth, customWindow.innerHeight, { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, format: THREE.RGBFormat, type: THREE.FloatType } );
@@ -227,8 +298,21 @@ function init() {
 		fragmentShader: document.getElementById( 'fragmentBounceback3' ).textContent,
 
 	} );
+	var attributes = {
+	  displacement: {
+	    type: 'vec2', // a float
+	    value: [] // an empty array
+	  }
+	};
+	materialParticle = new THREE.ShaderMaterial( {
+		varying: attributes,
+		vertexShader: document.getElementById( 'vertexParticleShader' ).textContent,
+		fragmentShader: document.getElementById( 'fragmentParticle' ).textContent,
 
-	var plane = new THREE.PlaneGeometry( customWindow.innerWidth, customWindow.innerHeight );
+	} );
+	plane = new THREE.PlaneGeometry( customWindow.innerWidth, customWindow.innerHeight );
+	triangle = new THREE.CircleGeometry( 2, 5 );
+	
 
 	quad = new THREE.Mesh( plane, materialMesh );
 	sceneMesh.add( quad );
@@ -261,9 +345,12 @@ function init() {
 	quad = new THREE.Mesh( plane, materialBounceback3 );
 	sceneBounceback3.add( quad );
 
-
 	quad = new THREE.Mesh( plane, materialShow );
 	sceneShow.add( quad );
+
+	quad = new THREE.Sprite(  );
+	sceneParticle.add( quad );
+
 
 	renderer = new THREE.WebGLRenderer();
 	//renderer.setViewport(333+customWindow.innerWidth,0333+customWindow.innerHeight);
@@ -285,7 +372,7 @@ function init() {
 	materialMesh.uniforms.dty.value  = 1. / customWindow.innerHeight;	
 
 	materialShow.uniforms.scaleOutput.value = Math.log(2.);
-
+	console.log(sceneMesh);
 	container.appendChild( renderer.domElement );
 
 	stats = new Stats();
@@ -339,6 +426,9 @@ function render() {
 	// Render full screen quad with generated texture
 
 	renderer.render( sceneShow, cameraRTT );
+	triangle.verticesNeedUpdate = true;
+	renderer.render( sceneParticle, cameraRTT );
+
 
 	materialStep1.uniforms.time.value += delta;
 	materialStep2.uniforms.time.value += delta;

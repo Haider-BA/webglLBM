@@ -40,8 +40,10 @@
 		</select>		
 		<br> Scale output by <input type="range" min="1.01" max="6.01" value="2.01" step="0.001" onchange="setScaleOutput( this.value )" />
 
-		<!-- <script src="./js/three.min.js"></script> -->
-		<script src="http://ajax.googleapis.com/ajax/libs/threejs/r67/three.min.js"></script>
+		<script src="./js/three.min.js"></script> 
+		<!--<script src="http://ajax.googleapis.com/ajax/libs/threejs/r67/three.min.js"></script> -->
+
+		<script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
 		<script src="js/Detector.js"></script>
 		<script src="js/stats.min.js"></script>
 
@@ -319,7 +321,7 @@
 			void main() {
 				gl_FragColor = texture2D( tDiffuse3, vUv );
 			}
-		</script>		
+		</script>				
 		<script id="fragmentShow" type="x-shader/x-fragment">
 			precision highp float;
 			precision highp int;
@@ -567,6 +569,15 @@
 				}
 			}
 		</script>															
+		<script id="fragmentParticle" type="x-shader/x-fragment">
+			precision highp float;
+			precision highp int;
+			varying vec2 displacement;
+			varying vec2 vUv;
+			void main() {
+				gl_FragColor = vec4( 1.,0.,0.,1. );
+			}
+		</script>	
 		<script id="vertexShader" type="x-shader/x-vertex">
 			precision highp float;
 			precision highp int;
@@ -574,6 +585,18 @@
 			void main() {
 				vUv = uv;
 				gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+			}
+		</script>
+		<script id="vertexParticleShader" type="x-shader/x-vertex">
+			precision highp float;
+			precision highp int;
+			//varying vec2 displacement;
+			varying vec2 vUv;
+			void main() {
+				vUv = uv;
+				//position += vec3(0.1,0.,0.);
+				//displacement  += vec2(13,0.);
+				gl_Position = projectionMatrix * modelViewMatrix * vec4( position , 1.0 ) ;
 			}
 		</script>
 
