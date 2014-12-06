@@ -321,7 +321,16 @@
 			void main() {
 				gl_FragColor = texture2D( tDiffuse3, vUv );
 			}
-		</script>				
+		</script>	
+		<script id="fragmentCopyMesh" type="x-shader/x-fragment">
+			precision highp float;
+			precision highp int;
+			varying vec2 vUv;
+			uniform highp sampler2D tDiffuse;
+			void main() {
+				gl_FragColor = texture2D( tDiffuse, vUv );
+			}
+		</script>						
 		<script id="fragmentShow" type="x-shader/x-fragment">
 			precision highp float;
 			precision highp int;
@@ -379,7 +388,7 @@
 					v2 = texture2D( tDiffuse2,vec2(1.,1.) -  vUv + vec2(0.,-dty) );
 					v3 = texture2D( tDiffuse3,vec2(1.,1.) -  vUv + vec2(0.,-dty) );					
 					getvel(v1,v2,v3,uS,vS);
-					velmag = abs(100.* ( (vE-vW)-(uN-uS) ));
+					velmag = abs(10.* ( (vE-vW)-(uN-uS) ));
 				};
 				float a=  (1.-scaleOutput * velmag)/0.25;	//invert and group
 				int X= int(floor(a));	//this is the integer part
@@ -401,14 +410,18 @@
 					r=0.;
 					g=255.- float(Y);
 					b=255.;
-				} else if (X ==4 ) {
+				} else if (X == 4 ) {
 				    r=0.;
 				    g=0.;
 				    b=255.;
-				} else {
-				    r=0.;
+				} else if ( X < 0 ) {
+				    r=255.;
 				    g=0.;
 				    b=0.;
+				} else {
+					r = 255.;
+					g = 0.;
+					b = 0.;
 				}
 				if (texture2D( tMask,vec2(1.,1.) -  vUv).r > 0.  ) {
 					gl_FragColor = vec4(0.,0.,0.,1.);
@@ -497,6 +510,26 @@
 				}
 			}
 		</script>
+		<script id="fragmentModifyMesh" type="x-shader/x-fragment">
+				precision highp float;
+			precision highp int;
+			varying vec2 vUv;
+			uniform float dtx;
+			uniform float dty;
+			uniform float x;
+			uniform float y;
+			uniform highp sampler2D currMesh;
+
+			void main() {
+				if ( (vUv.x - x)*(vUv.x - x) + 0.25*0.25*(vUv.y - y)*(vUv.y - y) < 0.02*0.02  ) {
+					gl_FragColor = vec4(1., 0., 0. ,1.);
+				} else if (  vUv.y < float(dty) + 1e-6 || vUv.y > 1. - float(dty) - 1e-6 ) {
+					gl_FragColor = vec4(1., 0., 0. ,1.);
+
+				} else {
+					gl_FragColor = texture2D(currMesh,vUv );// vec4(0.,0.,0.,1.);
+				}
+			}		</script>		
 		<script id="fragmentBounceback1" type="x-shader/x-fragment">
 			precision highp float;
 			precision highp int;

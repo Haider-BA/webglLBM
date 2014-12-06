@@ -3,17 +3,16 @@ if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 
 var container, stats, materialCopy, materialStep, materialShow;
 
-var cameraRTT, camera, sceneStep1, sceneStep2, sceneStep3, sceneShow, scene, renderer, zmesh1, zmesh2, sceneCopy1, sceneCopy2, sceneCopy3;
-var sceneCompute1, sceneCompute2 , sceneCompute3, sceneMesh  ;
-var sceneBounceback1, sceneBounceback2, sceneBounceback3, sceneParticle;
-
+var cameraRTT, camera, sceneStep1, sceneStep2, sceneStep3, sceneShow, scene, renderer, sceneCopy1, sceneCopy2, sceneCopy3;
+var sceneCompute1, sceneCompute2 , sceneCompute3, sceneMesh, meshMaskTexture  ;
+var sceneBounceback1, sceneBounceback2, sceneBounceback3, sceneParticle, sceneModifyMesh;
+var sceneCopyMesh, currMeshTexture;
 var mouseX = 0, mouseY = 0;
 
 var material, quad;
 
 var rtTexture1, rtTexture2, rtTexture3;
 var rtTexture1c, rtTexture2c, rtTexture3c;
-
 
 var triangle,plane;
 var delta = 1.;
@@ -22,69 +21,6 @@ document.addEventListener( 'mousedown', onDocumentMouseDown, false );
 
 
 
-function onDocumentMouseDown( event ) {
-	//var projector = new THREE.Projector();
-	var canvas = document.getElementById( 'container' );
-	var xRatio = window.innerWidth/customWindow.innerWidth;
-	var yRatio = window.innerHeight/customWindow.innerHeight;
-	var offsetTop = canvas.offsetTop;
-	var offsetLeft = canvas.offsetLeft;
-	
-	var vector = new THREE.Vector3(
-	    ( ((event.clientX-0) / window.innerWidth ) * 2 - 1)*xRatio,
-	    (- ( (event.clientY) / window.innerHeight  ) * 2  + 1)*yRatio + (offsetTop/3)/yRatio-5,
-	    .5 );
-	var vector2 = new THREE.Vector3(
-	    ( event.clientX / window.innerWidth ) * 2 - 1,
-	    - ( event.clientY / window.innerHeight ) * 2 + 1,
-	    0.5 );	
-	//console.log( yRatio );
-	//console.log( xRatio );
-	//console.log( offsetTop );
-	//console.log( offsetLeft );
-
-	//console.log(window.innerWidth);
-	//console.log(window.innerHeight);
-
-	//console.log( canvas.scrollWidth );
-	//console.log( canvas.scrollHeight ); 
-	console.log(vector2);
-	// use picking ray since it's an orthographic camera
-	//console.log("picking")
-	ballSprite = new THREE.Sprite(  );
-	ballSprite.scale.set( 3,3,1 );
-	ballSprite.position.set( 256*vector.x, 64*vector.y, 0 );
-	sceneParticle.add( ballSprite );	
-	
-	//var ray = projector.pickingRay( vector, cameraRTT );
-
-//	var intersects = ray.intersectObjects( sceneMesh );
-
-/*raycaster = new THREE.Raycaster();
-var vector3 = vector.clone().unproject( cameraRTT );
-var direction = new THREE.Vector3( 0, 0, -1 ).transformDirection( cameraRTT.matrixWorld );
-raycaster.set( vector3, direction );
-var intersects = raycaster.intersectObject( sceneMesh );
-	if ( intersects.length > 0 ) {
-		console.log("1")
-
-	    console.log( intersects[ 0 ] );
-
-
-	}
-//	ray = projector.pickingRay( vector2, cameraRTT );
-
-//	intersects = ray.intersectObjects( sceneMesh );
-
-	if ( intersects.length > 0 ) {
-		console.log("2")
-
-	    console.log( intersects[ 0 ] );
-
-
-	}	
-	*/
-}
 init();
 animate();
 //var customWindow;
@@ -129,6 +65,8 @@ function init() {
 	sceneBounceback3 = new THREE.Scene();	
 	sceneShow = new THREE.Scene();
 	sceneMesh = new THREE.Scene();
+	sceneModifyMesh = new THREE.Scene();
+	sceneCopyMesh = new THREE.Scene();
 	sceneParticle = new THREE.Scene();
 
 	rtTexture1 = new THREE.WebGLRenderTarget( customWindow.innerWidth, customWindow.innerHeight, { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, format: THREE.RGBFormat, type: THREE.FloatType } );
@@ -140,6 +78,7 @@ function init() {
 	rtTexture3c = new THREE.WebGLRenderTarget( customWindow.innerWidth, customWindow.innerHeight, { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, format: THREE.RGBFormat, type: THREE.FloatType } );
 	
 	meshMaskTexture = new THREE.WebGLRenderTarget( customWindow.innerWidth, customWindow.innerHeight, { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, format: THREE.RGBFormat } );
+	currMeshTexture = new THREE.WebGLRenderTarget( customWindow.innerWidth, customWindow.innerHeight, { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, format: THREE.RGBFormat } );
 
 	rtTexture1.wrapS = THREE.RepeatWrapping;
 	rtTexture1.wrapT = THREE.RepeatWrapping;
@@ -259,7 +198,16 @@ function init() {
 
 		depthWrite: false
 
-	} );		
+	} );	
+	materialCopyMesh = new THREE.ShaderMaterial( {
+
+		uniforms: { tDiffuse: { type: "t", value: currMeshTexture } },
+		vertexShader: document.getElementById( 'vertexShader' ).textContent,
+		fragmentShader: document.getElementById( 'fragmentCopyMesh' ).textContent,
+
+		depthWrite: false
+
+	} );			
 	materialMesh = new THREE.ShaderMaterial( {
 		uniforms: { dtx: { type: "f", value: 0.1}, dty: { type: "f", value: 0.1}},
 		vertexShader: document.getElementById( 'vertexShader' ).textContent,
@@ -267,7 +215,15 @@ function init() {
 
 		depthWrite: false
 
-	} );						
+	} );
+	materialModifyMesh = new THREE.ShaderMaterial( {
+		uniforms: { currMesh: { type: "t", value: meshMaskTexture }, dtx: { type: "f", value: 1.1}, dty: { type: "f", value: 1.1},  x: { type: "f", value: 1.1}, y: { type: "f", value: 1.1}},
+		vertexShader: document.getElementById( 'vertexShader' ).textContent,
+		fragmentShader: document.getElementById( 'fragmentModifyMesh' ).textContent,
+
+		depthWrite: false
+
+	} );							
 	materialBounceback1 = new THREE.ShaderMaterial( {
 
 		uniforms: {tDiffuse1: { type: "t", value: rtTexture1 },
@@ -316,6 +272,8 @@ function init() {
 
 	quad = new THREE.Mesh( plane, materialMesh );
 	sceneMesh.add( quad );
+	quad = new THREE.Mesh( plane, materialModifyMesh );
+	sceneModifyMesh.add( quad );
 
 	quad = new THREE.Mesh( plane, materialStep1 );
 	sceneStep1.add( quad );
@@ -348,6 +306,10 @@ function init() {
 	quad = new THREE.Mesh( plane, materialShow );
 	sceneShow.add( quad );
 
+	quad = new THREE.Mesh( plane, materialCopyMesh );
+	sceneCopyMesh.add( quad );
+
+
 	quad = new THREE.Sprite(  );
 	sceneParticle.add( quad );
 
@@ -370,6 +332,10 @@ function init() {
 
 	materialMesh.uniforms.dtx.value  = 1. / customWindow.innerWidth;
 	materialMesh.uniforms.dty.value  = 1. / customWindow.innerHeight;	
+
+	materialModifyMesh.uniforms.dtx.value  = 1. / customWindow.innerWidth;
+	materialModifyMesh.uniforms.dty.value  = 1. / customWindow.innerHeight;	
+	
 
 	materialShow.uniforms.scaleOutput.value = Math.log(2.);
 	console.log(sceneMesh);
@@ -396,9 +362,9 @@ function render() {
 	//var time = Date.now() * 0.0015;
 	renderer.clear();
 	if (currTime == 0) {
-		renderer.render( sceneMesh, cameraRTT, meshMaskTexture, true );
+		//renderer.render( sceneMesh, cameraRTT, meshMaskTexture, true );
 	};
-
+//renderer.render( sceneModifyMesh, cameraRTT, meshMaskTexture, true );
 	renderer.render( sceneCompute1, cameraRTT, rtTexture1c, true );
 	renderer.render( sceneCompute2, cameraRTT, rtTexture2c, true );
 	renderer.render( sceneCompute3, cameraRTT, rtTexture3c, true );
@@ -440,3 +406,74 @@ function render() {
 	currTime += delta;
 }
 
+
+function onDocumentMouseDown( event ) {
+	//var projector = new THREE.Projector();
+	var canvas = document.getElementById( 'container' );
+	var xRatio = window.innerWidth/customWindow.innerWidth;
+	var yRatio = window.innerHeight/customWindow.innerHeight;
+	var offsetTop = canvas.offsetTop;
+	var offsetLeft = canvas.offsetLeft;
+	
+	var vector = new THREE.Vector3(
+	    ( ((event.clientX-0) / window.innerWidth ) * 2 - 1)*xRatio,
+	    (- ( (event.clientY) / window.innerHeight  ) * 2  + 1)*yRatio - (offsetTop/3)/yRatio -2,
+	    .5 );
+	var vector2 = new THREE.Vector3(
+	    ( event.clientX / window.innerWidth ) * 2 - 1,
+	    - ( event.clientY / window.innerHeight ) * 2 + 1,
+	    0.5 );	
+	//console.log( yRatio );
+	//console.log( xRatio );
+	//console.log( offsetTop );
+	//console.log( offsetLeft );
+
+	//console.log(window.innerWidth);
+	//console.log(window.innerHeight);
+
+	//console.log( canvas.scrollWidth );
+	//console.log( canvas.scrollHeight ); 
+	console.log(vector);
+	// use picking ray since it's an orthographic camera
+	//console.log("picking")
+	//ballSprite = new THREE.Sprite(  );
+	//ballSprite.scale.set( 3,3,1 );
+	//ballSprite.position.set( 256*vector.x, 64*vector.y, 0 );
+	//sceneParticle.add( ballSprite );	
+	materialModifyMesh.uniforms.x.value = .5 - .5*vector.x;
+	materialModifyMesh.uniforms.y.value = .5 - .5*vector.y;
+	//renderer.clear();
+	renderer.render( sceneModifyMesh, cameraRTT, currMeshTexture, true );
+	renderer.render( sceneCopyMesh, cameraRTT,meshMaskTexture, true);
+	renderer.render( sceneShow, cameraRTT );
+	//	renderer.render( sceneMesh, cameraRTT, meshMaskTexture, true );
+
+	//var ray = projector.pickingRay( vector, cameraRTT );
+
+//	var intersects = ray.intersectObjects( sceneMesh );
+
+/*raycaster = new THREE.Raycaster();
+var vector3 = vector.clone().unproject( cameraRTT );
+var direction = new THREE.Vector3( 0, 0, -1 ).transformDirection( cameraRTT.matrixWorld );
+raycaster.set( vector3, direction );
+var intersects = raycaster.intersectObject( sceneMesh );
+	if ( intersects.length > 0 ) {
+		console.log("1")
+
+	    console.log( intersects[ 0 ] );
+
+
+	}
+//	ray = projector.pickingRay( vector2, cameraRTT );
+
+//	intersects = ray.intersectObjects( sceneMesh );
+
+	if ( intersects.length > 0 ) {
+		console.log("2")
+
+	    console.log( intersects[ 0 ] );
+
+
+	}	
+	*/
+}
