@@ -95,7 +95,7 @@
 				float uy = invDensity *(f2+f3+f4-f6-f7-f8);
 
 				if (abs(vUv.x - 0.5/512.) < 1e-6) {
-					ux = 0.75 * (vUv.y-vUv.y*vUv.y);
+					ux = 0.25 * (vUv.y-vUv.y*vUv.y);
 					uy = 0.0;
 					density = (1./(1.-ux) )* (f3+f7+f9+2.*(f4+f5+f6) );
 					f1 = f5 + (2./3.)*density*ux;
@@ -119,15 +119,12 @@
 				float feq1 = t2*density*(1. + ux/c_squ+0.5*(ux/c_squ)*(ux/c_squ)- usqu/(2.*c_squ));
 				float feq3 = t2*density*(1. + uy/c_squ+0.5*(uy/c_squ)*(uy/c_squ) - usqu/(2.*c_squ));
 				float feq2 = t3*density*(1. + uc2/c_squ+0.5*(uc2/c_squ)*(uc2/c_squ)- usqu/(2.*c_squ));
-				if ( false && ( (vUv.x-0.5) * (vUv.x-0.5) + (vUv.y-0.5)*(vUv.y-0.5) ) < 0.025*0.025 ) {
-					
-					gl_FragColor = vec4(f1, f2, f3, 1.);
-				} 	else {
+
 				float ff1 = omega * feq1 + (1. - omega) * f1;
 				float ff2 = omega * feq2 + (1. - omega) * f2;
 				float ff3 = omega * feq3 + (1. - omega) * f3;
 				gl_FragColor = vec4(ff1,ff2,ff3,1.);
-				}
+				
 			}
 		</script>
 		<script id="fragmentCompute2" type="x-shader/x-fragment">
@@ -179,7 +176,7 @@
 				float uy = invDensity *(f2+f3+f4-f6-f7-f8);				
 
 				if (abs(vUv.x - 0.5/512.) < 1e-6) {
-					ux = 0.75 * (vUv.y-vUv.y*vUv.y);
+					ux = 0.25 * (vUv.y-vUv.y*vUv.y);
 					uy = 0.0;
 					density = (1./(1.-ux) )* (f3+f7+f9+2.*(f4+f5+f6) );
 					f1 = f5 + (2./3.)*density*ux;
@@ -206,12 +203,9 @@
 				float ff4 = omega * feq4 + (1. - omega) * f4;
 				float ff5 = omega * feq5 + (1. - omega) * f5;
 				float ff6 = omega * feq6 + (1. - omega) * f6;
-				if ( false && ( (vUv.x-0.5) * (vUv.x-0.5) + (vUv.y-0.5)*(vUv.y-0.5) ) < 0.025*0.025 ) {
-					
-					gl_FragColor = vec4(f4, f5, f6, 1.);
-				} 	else {
+
 				gl_FragColor = vec4(ff4,ff5,ff6,1.);
-			}
+
 		}
 		</script>
 		<script id="fragmentCompute3" type="x-shader/x-fragment">
@@ -262,7 +256,7 @@
 				float uy = invDensity *(f2+f3+f4-f6-f7-f8);
 
 				if (abs(vUv.x - 0.5/512.) < 1e-6) {
-					ux = 0.75 * (vUv.y-vUv.y*vUv.y);
+					ux = 0.25 * (vUv.y-vUv.y*vUv.y);
 					uy = 0.0;
 					density = (1./(1.-ux) )* (f3+f7+f9+2.*(f4+f5+f6) );
 					f1 = f5 + (2./3.)*density*ux;
@@ -288,11 +282,9 @@
 				float ff7 = omega * feq7 + (1. - omega) * f7;
 				float ff8 = omega * feq8 + (1. - omega) * f8;
 				float ff9 = omega * feq9 + (1. - omega) * f9;				
-				if ( false && ( (vUv.x-0.5) * (vUv.x-0.5) + (vUv.y-0.5)*(vUv.y-0.5) ) < 0.025*0.025 ) {	
-					gl_FragColor = vec4(f7, f8, f9, 1.);
-				} 	else {
+
 				gl_FragColor = vec4(ff7,ff8,ff9,1.);
-			}
+
 			}
 		</script>				
 		<script id="fragmentCopy1" type="x-shader/x-fragment">
@@ -358,9 +350,9 @@
 				//return 3.0;
 			}
 			void main() {
-				vec4 v1 = texture2D( tDiffuse1,vec2(1.,1.) - vUv );
-				vec4 v2 = texture2D( tDiffuse2,vec2(1.,1.) -  vUv );
-				vec4 v3 = texture2D( tDiffuse3,vec2(1.,1.) -  vUv );
+				vec4 v1 = texture2D( tDiffuse1,vec2(0.,0.) + vUv );
+				vec4 v2 = texture2D( tDiffuse2,vec2(0.,0.) +  vUv );
+				vec4 v3 = texture2D( tDiffuse3,vec2(0.,0.) +  vUv );
 				float ux,uy;
 				getvel(v1,v2,v3,ux,uy);
 				float velmag = 0.;
@@ -423,7 +415,7 @@
 					g = 0.;
 					b = 0.;
 				}
-				if (texture2D( tMask,vec2(1.,1.) -  vUv).r > 0.  ) {
+				if (texture2D( tMask,vec2(0.,0.) +  vUv).r > 0.  ) {
 					gl_FragColor = vec4(0.,0.,0.,1.);
 				} else {				
 				//if (velmag > 1.) { velmag = 1; };
@@ -447,9 +439,9 @@
 				} else {
 					//float h = - dt;
 					//vec4 fVec = texture2D( tDiffuse3, vUv + vec2(h,0.));
-					float f1 = texture2D( tDiffuse3, vUv + vec2(dtx,0)).r;
-					float f2 = texture2D( tDiffuse3, vUv + vec2(dtx,dty)).g;
-					float f3 = texture2D( tDiffuse3, vUv + vec2(0,dty)).b;
+					float f1 = texture2D( tDiffuse3, vUv - vec2(dtx,0)).r;
+					float f2 = texture2D( tDiffuse3, vUv - vec2(dtx,dty)).g;
+					float f3 = texture2D( tDiffuse3, vUv - vec2(0,dty)).b;
 					gl_FragColor = vec4(f1, f2, f3 ,1.);
 				}
 			}
@@ -467,9 +459,9 @@
 					gl_FragColor = vec4(1./9.,1./9.,1./9.,1.);
 				} else {
 					//float h = - dt;
-					float f4 = texture2D( tDiffuse3, vUv + vec2(-dtx,dty)).r;
-					float f5 = texture2D( tDiffuse3, vUv + vec2(-dtx,0)).g;
-					float f6 = texture2D( tDiffuse3, vUv + vec2(-dtx,-dty)).b;
+					float f4 = texture2D( tDiffuse3, vUv - vec2(-dtx,dty)).r;
+					float f5 = texture2D( tDiffuse3, vUv - vec2(-dtx,0)).g;
+					float f6 = texture2D( tDiffuse3, vUv - vec2(-dtx,-dty)).b;
 					gl_FragColor = vec4(f4, f5, f6 ,1.);
 				}
 			}
@@ -487,8 +479,8 @@
 					gl_FragColor = vec4(1./9.,1./9.,1./9.,1.);
 				} else {
 					//float h = - dt;
-					float f7 = texture2D( tDiffuse3, vUv + vec2(0,-dty)).r;
-					float f8 = texture2D( tDiffuse3, vUv + vec2(dtx,-dty)).g;
+					float f7 = texture2D( tDiffuse3, vUv - vec2(0,-dty)).r;
+					float f8 = texture2D( tDiffuse3, vUv - vec2(dtx,-dty)).g;
 					float f9 = texture2D( tDiffuse3, vUv).b;
 					gl_FragColor = vec4(f7, f8, f9 ,1.);
 				}

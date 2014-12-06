@@ -373,6 +373,14 @@ function render() {
 	renderer.render( sceneCopy2, cameraRTT, rtTexture2, true );
 	renderer.render( sceneCopy3, cameraRTT, rtTexture3, true );
 
+	renderer.render( sceneBounceback1, cameraRTT, rtTexture1c, true );
+	renderer.render( sceneBounceback2, cameraRTT, rtTexture2c, true );
+	renderer.render( sceneBounceback3, cameraRTT, rtTexture3c, true );
+
+	renderer.render( sceneCopy1, cameraRTT, rtTexture1, true );
+	renderer.render( sceneCopy2, cameraRTT, rtTexture2, true );
+	renderer.render( sceneCopy3, cameraRTT, rtTexture3, true );
+
 	renderer.render( sceneStep1, cameraRTT, rtTexture1c, true );
 	renderer.render( sceneCopy1, cameraRTT, rtTexture1, true );
 	
@@ -382,13 +390,6 @@ function render() {
 	renderer.render( sceneStep3, cameraRTT, rtTexture3c, true );
 	renderer.render( sceneCopy3, cameraRTT, rtTexture3, true );
 
-	renderer.render( sceneBounceback1, cameraRTT, rtTexture1c, true );
-	renderer.render( sceneBounceback2, cameraRTT, rtTexture2c, true );
-	renderer.render( sceneBounceback3, cameraRTT, rtTexture3c, true );
-
-	renderer.render( sceneCopy1, cameraRTT, rtTexture1, true );
-	renderer.render( sceneCopy2, cameraRTT, rtTexture2, true );
-	renderer.render( sceneCopy3, cameraRTT, rtTexture3, true );
 	// Render full screen quad with generated texture
 
 	renderer.render( sceneShow, cameraRTT );
@@ -442,6 +443,11 @@ function onDocumentMouseDown( event ) {
 	//sceneParticle.add( ballSprite );	
 	materialModifyMesh.uniforms.x.value = .5 - .5*vector.x;
 	materialModifyMesh.uniforms.y.value = .5 - .5*vector.y;
+
+	materialModifyMesh.uniforms.x.value = .5 + .5*vector.x;
+	materialModifyMesh.uniforms.y.value = .5 + .5*vector.y;
+
+
 	//renderer.clear();
 	renderer.render( sceneModifyMesh, cameraRTT, currMeshTexture, true );
 	renderer.render( sceneCopyMesh, cameraRTT,meshMaskTexture, true);
