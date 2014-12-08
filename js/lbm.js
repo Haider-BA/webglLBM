@@ -1,18 +1,19 @@
 
 if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 
-var container, stats, materialCopy, materialStep, materialShow;
-
-var cameraRTT, camera, sceneStep1, sceneStep2, sceneStep3, sceneShow, scene, renderer, sceneCopy1, sceneCopy2, sceneCopy3;
+var container, stats, materialCopy, materialStep, materialShow
+var cameraRTT, sceneStep1, sceneStep2, sceneStep3, sceneShow, scene, renderer, sceneCopy1, sceneCopy2, sceneCopy3;
 var sceneCompute1, sceneCompute2 , sceneCompute3, sceneMesh, meshMaskTexture  ;
 var sceneBounceback1, sceneBounceback2, sceneBounceback3, sceneParticle, sceneModifyMesh;
 var sceneCopyMesh, currMeshTexture;
+var sceneMacro;
 var mouseX = 0, mouseY = 0;
 
 var material, quad;
 
 var rtTexture1, rtTexture2, rtTexture3;
 var rtTexture1c, rtTexture2c, rtTexture3c;
+var rtTextureMacro;
 
 var triangle,plane;
 var delta = 1.;
@@ -22,21 +23,22 @@ document.addEventListener( 'mousedown', onDocumentMouseDown, false );
 
 
 init();
+init2();
 animate();
 //var customWindow;
 function setRenderType(v) {
-  var bu = v.valueOf();
-  materialShow.uniforms.renderType.value = bu;
+	var bu = v.valueOf();
+	materialShow.uniforms.renderType.value = bu;
 }
 function setOmega(v) {
-  var bu = v.valueOf();
-  materialCompute1.uniforms.omega.value = bu;
-  materialCompute2.uniforms.omega.value = bu;
-  materialCompute3.uniforms.omega.value = bu;
+	var bu = v.valueOf();
+	materialCompute1.uniforms.omega.value = bu;
+	materialCompute2.uniforms.omega.value = bu;
+	materialCompute3.uniforms.omega.value = bu;
 }
 function setScaleOutput(v) {
-  var bu = v.valueOf();
-  materialShow.uniforms.scaleOutput.value = Math.log(bu);
+	var bu = v.valueOf();
+	materialShow.uniforms.scaleOutput.value = Math.log(bu);
 }
 
 function init() {
@@ -47,6 +49,7 @@ function init() {
 	customWindow.innerHeight = 128;
 
 	cameraRTT = new THREE.OrthographicCamera( customWindow.innerWidth / - 2, customWindow.innerWidth / 2, customWindow.innerHeight / 2, customWindow.innerHeight / - 2, -1000, 1000 );
+
 	//cameraRTT.position.z = 999;
 	//cameraRTT = new THREE.PerspectiveCamera( 90, window.innerWidth / window.innerHeight, 1, 1000 );
 
@@ -68,6 +71,9 @@ function init() {
 	sceneModifyMesh = new THREE.Scene();
 	sceneCopyMesh = new THREE.Scene();
 	sceneParticle = new THREE.Scene();
+	sceneMacro = new THREE.Scene();
+
+	rtTextureMacro = new THREE.WebGLRenderTarget( customWindow.innerWidth, customWindow.innerHeight, { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, format: THREE.RGBFormat, type: THREE.FloatType } );
 
 	rtTexture1 = new THREE.WebGLRenderTarget( customWindow.innerWidth, customWindow.innerHeight, { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, format: THREE.RGBFormat, type: THREE.FloatType } );
 	rtTexture2 = new THREE.WebGLRenderTarget( customWindow.innerWidth, customWindow.innerHeight, { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, format: THREE.RGBFormat, type: THREE.FloatType } );
@@ -108,8 +114,19 @@ function init() {
 		tDiffuse3: { type: "t", value: rtTexture3c },
 		tMask: { type: "t", value: meshMaskTexture },
 		scaleOutput: { type: "f", value: Math.log(2.) }
-		  } }
+	} }
 	);
+
+	materialMacro = new THREE.ShaderMaterial( {
+
+		uniforms: { 
+		tDiffuse1: { type: "t", value: rtTexture1 },
+		tDiffuse2: { type: "t", value: rtTexture2 },
+		tDiffuse3: { type: "t", value: rtTexture3 } },
+		vertexShader: document.getElementById( 'vertexShader' ).textContent,
+		fragmentShader: document.getElementById( 'fragmentMacro' ).textContent,
+	} );
+
 
 	materialCompute1 = new THREE.ShaderMaterial( {
 
@@ -255,66 +272,70 @@ function init() {
 
 	} );
 	var attributes = {
-	  displacement: {
+		displacement: {
 	    type: 'vec2', // a float
 	    value: [] // an empty array
-	  }
-	};
-	materialParticle = new THREE.ShaderMaterial( {
-		varying: attributes,
-		vertexShader: document.getElementById( 'vertexParticleShader' ).textContent,
-		fragmentShader: document.getElementById( 'fragmentParticle' ).textContent,
+	}
+};
+materialParticle = new THREE.ShaderMaterial( {
+	/*varying: attributes, uniforms: {tTex: {type:"t", value: rtTexture1 }},*/
+		//vertexShader: document.getElementById( 'vertexParticleShader' ).textContent,
+		//fragmentShader: document.getElementById( 'fragmentParticle' ).textContent,
 
 	} );
-	plane = new THREE.PlaneGeometry( customWindow.innerWidth, customWindow.innerHeight );
-	triangle = new THREE.CircleGeometry( 2, 5 );
-	
-
-	quad = new THREE.Mesh( plane, materialMesh );
-	sceneMesh.add( quad );
-	quad = new THREE.Mesh( plane, materialModifyMesh );
-	sceneModifyMesh.add( quad );
-
-	quad = new THREE.Mesh( plane, materialStep1 );
-	sceneStep1.add( quad );
-	quad = new THREE.Mesh( plane, materialStep2 );
-	sceneStep2.add( quad );
-	quad = new THREE.Mesh( plane, materialStep3 );
-	sceneStep3.add( quad );
-
-	quad = new THREE.Mesh( plane, materialCopy1 );
-	sceneCopy1.add( quad );
-	quad = new THREE.Mesh( plane, materialCopy2 );
-	sceneCopy2.add( quad );
-	quad = new THREE.Mesh( plane, materialCopy3 );
-	sceneCopy3.add( quad );
-
-	quad = new THREE.Mesh( plane, materialCompute1 );
-	sceneCompute1.add( quad );
-	quad = new THREE.Mesh( plane, materialCompute2 );
-	sceneCompute2.add( quad );				
-	quad = new THREE.Mesh( plane, materialCompute3 );
-	sceneCompute3.add( quad );
-
-	quad = new THREE.Mesh( plane, materialBounceback1 );
-	sceneBounceback1.add( quad );
-	quad = new THREE.Mesh( plane, materialBounceback2 );
-	sceneBounceback2.add( quad );				
-	quad = new THREE.Mesh( plane, materialBounceback3 );
-	sceneBounceback3.add( quad );
-
-	quad = new THREE.Mesh( plane, materialShow );
-	sceneShow.add( quad );
-
-	quad = new THREE.Mesh( plane, materialCopyMesh );
-	sceneCopyMesh.add( quad );
+plane = new THREE.PlaneGeometry( customWindow.innerWidth, customWindow.innerHeight );
+triangle = new THREE.CircleGeometry( 2, 5 );
 
 
-	quad = new THREE.Sprite(  );
-	sceneParticle.add( quad );
+quad = new THREE.Mesh( plane, materialMesh );
+sceneMesh.add( quad );
+
+quad = new THREE.Mesh( plane, materialMacro );
+sceneMacro.add( quad );
+
+quad = new THREE.Mesh( plane, materialModifyMesh );
+sceneModifyMesh.add( quad );
+
+quad = new THREE.Mesh( plane, materialStep1 );
+sceneStep1.add( quad );
+quad = new THREE.Mesh( plane, materialStep2 );
+sceneStep2.add( quad );
+quad = new THREE.Mesh( plane, materialStep3 );
+sceneStep3.add( quad );
+
+quad = new THREE.Mesh( plane, materialCopy1 );
+sceneCopy1.add( quad );
+quad = new THREE.Mesh( plane, materialCopy2 );
+sceneCopy2.add( quad );
+quad = new THREE.Mesh( plane, materialCopy3 );
+sceneCopy3.add( quad );
+
+quad = new THREE.Mesh( plane, materialCompute1 );
+sceneCompute1.add( quad );
+quad = new THREE.Mesh( plane, materialCompute2 );
+sceneCompute2.add( quad );				
+quad = new THREE.Mesh( plane, materialCompute3 );
+sceneCompute3.add( quad );
+
+quad = new THREE.Mesh( plane, materialBounceback1 );
+sceneBounceback1.add( quad );
+quad = new THREE.Mesh( plane, materialBounceback2 );
+sceneBounceback2.add( quad );				
+quad = new THREE.Mesh( plane, materialBounceback3 );
+sceneBounceback3.add( quad );
+
+quad = new THREE.Mesh( plane, materialShow );
+sceneShow.add( quad );
+
+quad = new THREE.Mesh( plane, materialCopyMesh );
+sceneCopyMesh.add( quad )
+
+quad = new THREE.Sprite(  );
+quad.scale.set(5,5,1);
+sceneParticle.add( quad );
 
 
-	renderer = new THREE.WebGLRenderer();
+renderer = new THREE.WebGLRenderer();
 	//renderer.setViewport(333+customWindow.innerWidth,0333+customWindow.innerHeight);
 	renderer.setSize( customWindow.innerWidth, customWindow.innerHeight );
 	renderer.autoClear = false;
@@ -363,8 +384,16 @@ function render() {
 	renderer.clear();
 	if (currTime == 0) {
 		//renderer.render( sceneMesh, cameraRTT, meshMaskTexture, true );
+		renderer.render(randScene, cameraRTT, velTexture[0]);
+		renderer.render(randScene, cameraRTT, posTexture[0]);
+		renderer.render(randScene, cameraRTT, velTexture[1]);
+		renderer.render(randScene, cameraRTT, posTexture[1]);
+
+		buffer = 1;
+		console.log("initialising");
 	};
 //renderer.render( sceneModifyMesh, cameraRTT, meshMaskTexture, true );
+for (var i = 0; i < 1; i++) {
 	renderer.render( sceneCompute1, cameraRTT, rtTexture1c, true );
 	renderer.render( sceneCompute2, cameraRTT, rtTexture2c, true );
 	renderer.render( sceneCompute3, cameraRTT, rtTexture3c, true );
@@ -390,11 +419,46 @@ function render() {
 	renderer.render( sceneStep3, cameraRTT, rtTexture3c, true );
 	renderer.render( sceneCopy3, cameraRTT, rtTexture3, true );
 
-	// Render full screen quad with generated texture
+};
 
+var a, b;
+
+    //renderer.setViewport(0,0,texSize, texSize);
+
+    if (buffer == 1) {
+    	buffer = 0;
+    	a = 1;
+    	b = 0;
+    } else {
+    	buffer = 1;
+    	a = 0;
+    	b = 1;
+    }
+    if (currTime > 0* delta) {
+    renderer.render( sceneMacro, cameraRTT, rtTextureMacro, true );
+
+    velUniforms.velTex.value = velTexture[a];
+    velUniforms.posTex.value = posTexture[a];
+
+
+    renderer.render(velScene, cameraRTT, velTexture[b]);
+
+    posUniforms.velTex.value = velTexture[b];
+    posUniforms.posTex.value = posTexture[a];
+
+    renderer.render(posScene, cameraRTT, posTexture[b]);
+
+    dispUniforms.posTex.value = posTexture[b];
+
+    };
+    //renderer.setViewport(0,0,dispSize.x, dispSize.y);
+
+	// Render full screen quad with generated textur
+	
 	renderer.render( sceneShow, cameraRTT );
-	triangle.verticesNeedUpdate = true;
-	renderer.render( sceneParticle, cameraRTT );
+    renderer.render(dispScene, cameraRTT);
+	//triangle.verticesNeedUpdate = true;
+	//renderer.render( sceneParticle, cameraRTT );
 
 
 	materialStep1.uniforms.time.value += delta;
@@ -417,69 +481,29 @@ function onDocumentMouseDown( event ) {
 	var offsetLeft = canvas.offsetLeft;
 	
 	var vector = new THREE.Vector3(
-	    ( ((event.clientX-0) / window.innerWidth ) * 2 - 1)*xRatio,
-	    (- ( (event.clientY) / window.innerHeight  ) * 2  + 1)*yRatio - (offsetTop/3)/yRatio -2,
-	    .5 );
+		( ((event.clientX-0) / window.innerWidth ) * 2 - 1)*xRatio,
+		(- ( (event.clientY) / window.innerHeight  ) * 2  + 1)*yRatio - (offsetTop/3)/yRatio -2,
+		.5 );
 	var vector2 = new THREE.Vector3(
-	    ( event.clientX / window.innerWidth ) * 2 - 1,
-	    - ( event.clientY / window.innerHeight ) * 2 + 1,
-	    0.5 );	
-	//console.log( yRatio );
-	//console.log( xRatio );
-	//console.log( offsetTop );
-	//console.log( offsetLeft );
+		( event.clientX / window.innerWidth ) * 2 - 1,
+		- ( event.clientY / window.innerHeight ) * 2 + 1,
+		0.5 );	
 
-	//console.log(window.innerWidth);
-	//console.log(window.innerHeight);
-
-	//console.log( canvas.scrollWidth );
-	//console.log( canvas.scrollHeight ); 
 	console.log(vector);
+
 	// use picking ray since it's an orthographic camera
-	//console.log("picking")
-	//ballSprite = new THREE.Sprite(  );
-	//ballSprite.scale.set( 3,3,1 );
-	//ballSprite.position.set( 256*vector.x, 64*vector.y, 0 );
-	//sceneParticle.add( ballSprite );	
-	materialModifyMesh.uniforms.x.value = .5 - .5*vector.x;
-	materialModifyMesh.uniforms.y.value = .5 - .5*vector.y;
+	ballSprite = new THREE.Sprite(  );
+	ballSprite.scale.set( 12,12,1 );
+	ballSprite.position.set( 256*vector.x, 64*vector.y, 0 );
+//	sceneParticle.add( ballSprite );	
 
-	materialModifyMesh.uniforms.x.value = .5 + .5*vector.x;
-	materialModifyMesh.uniforms.y.value = .5 + .5*vector.y;
+materialModifyMesh.uniforms.x.value = .5 + .5*vector.x;
+materialModifyMesh.uniforms.y.value = .5 + .5*vector.y;
 
 
-	//renderer.clear();
-	renderer.render( sceneModifyMesh, cameraRTT, currMeshTexture, true );
-	renderer.render( sceneCopyMesh, cameraRTT,meshMaskTexture, true);
-	renderer.render( sceneShow, cameraRTT );
-	//	renderer.render( sceneMesh, cameraRTT, meshMaskTexture, true );
+renderer.clear();
+renderer.render( sceneModifyMesh, cameraRTT, currMeshTexture, true );
+renderer.render( sceneCopyMesh, cameraRTT,meshMaskTexture, true);
+renderer.render( sceneShow, cameraRTT );
 
-	//var ray = projector.pickingRay( vector, cameraRTT );
-
-//	var intersects = ray.intersectObjects( sceneMesh );
-
-/*raycaster = new THREE.Raycaster();
-var vector3 = vector.clone().unproject( cameraRTT );
-var direction = new THREE.Vector3( 0, 0, -1 ).transformDirection( cameraRTT.matrixWorld );
-raycaster.set( vector3, direction );
-var intersects = raycaster.intersectObject( sceneMesh );
-	if ( intersects.length > 0 ) {
-		console.log("1")
-
-	    console.log( intersects[ 0 ] );
-
-
-	}
-//	ray = projector.pickingRay( vector2, cameraRTT );
-
-//	intersects = ray.intersectObjects( sceneMesh );
-
-	if ( intersects.length > 0 ) {
-		console.log("2")
-
-	    console.log( intersects[ 0 ] );
-
-
-	}	
-	*/
 }
