@@ -18,27 +18,12 @@ var posTexture;
 var posUniforms;
 var dispUniforms;
 var mouse = {x:0,y:0};
-var projector;
 var canvas;
 var texSize = 128;
 var dispSize = {x:window.innerWidth, y:window.innerHeight};
 var paused = false;
 
 function init2() {
-
-    //renderer = new THREE.WebGLRenderer({alpha: false });
-    //renderer.setClearColor(0x000000, false);
-
-    projector = new THREE.Projector();
-
-    $("#help").click(function() {
-        console.log("clicked help");
-        $(this).fadeOut();
-    });
-
-    //renderer.setSize(dispSize.x, dispSize.y);
-
-    ///renderer.setBlending(THREE.AdditiveBlending);
 
     canvas = renderer.domElement;
 
@@ -90,9 +75,6 @@ function init2() {
         }
     );
 
-    console.log(posTexture);
-
-
     velScene = new THREE.Scene();
     posScene = new THREE.Scene();
 
@@ -107,9 +89,6 @@ function init2() {
         gravDist: 	{ type: "f", value: 1000.0 }
     };
 
-
-
-
     var velMaterial = new THREE.ShaderMaterial( {
         uniforms: velUniforms,
         vertexShader:velVert,
@@ -117,10 +96,8 @@ function init2() {
         depthWrite: false
     });
 
-    var velPlane = new THREE.Mesh(new THREE.PlaneGeometry(customWindow.innerWidth, customWindow.innerHeight), velMaterial);
+    var velPlane = new THREE.Mesh(new THREE.PlaneBufferGeometry(customWindow.innerWidth, customWindow.innerHeight), velMaterial);
     velScene.add(velPlane);
-
-
 
     var posVert = $('#posVert').text();
     var posFrag = $('#posFrag').text();
@@ -132,8 +109,6 @@ function init2() {
         time: {type: "f", value: 1.0 }
     };
 
-
-
     var posMaterial = new THREE.ShaderMaterial( {
         uniforms: posUniforms,
         vertexShader:posVert,
@@ -141,13 +116,8 @@ function init2() {
         depthWrite: false
     });
 
-
-    var posPlane = new THREE.Mesh(new THREE.PlaneGeometry(customWindow.innerWidth, customWindow.innerHeight), posMaterial);
+    var posPlane = new THREE.Mesh(new THREE.PlaneBufferGeometry(customWindow.innerWidth, customWindow.innerHeight), posMaterial);
     posScene.add(posPlane);
-
-
-
-
 
     randScene = new THREE.Scene();
     var randVert = $('#randVert').text();
@@ -157,8 +127,6 @@ function init2() {
         time: 	{ type: "f", value: 1.0 }
     };
 
-
-
     var randMaterial = new THREE.ShaderMaterial( {
         uniforms: randUniforms,
         vertexShader:randVert,
@@ -166,21 +134,14 @@ function init2() {
         depthWrite: false
     });
 
-
-    var randPlane = new THREE.Mesh(new THREE.PlaneGeometry(customWindow.innerWidth, customWindow.innerHeight), randMaterial);
+    var randPlane = new THREE.Mesh(new THREE.PlaneBufferGeometry(customWindow.innerWidth, customWindow.innerHeight), randMaterial);
     randScene.add(randPlane);
-
 
     // Display
 
     dispScene = new THREE.Scene();
 
     dispScene.add(cameraRTT );
-
-    //cameraControls = new THREE.OrbitControls(camera);
-    
-    //cameraControls.userPanSpeed = 0;
-
 
     var dispVert = $('#dispVert').text();
     var dispFrag = $('#dispFrag').text();
@@ -207,20 +168,20 @@ function init2() {
 
     var particles = new THREE.Geometry();
 
-    var nPartPerDim = 20;
-    for (var i = 0; i < nPartPerDim; i++) {
-        for (var j = 0; j < nPartPerDim; j++) {
+    var nPartX = 20;
+    var nPartY = customWindow.innerWidth/customWindow.innerHeight * nPartX
+    for (var i = 0; i < nPartY; i++) {
+        for (var j = 0; j < nPartX; j++) {
 
-        var xPix = /*customWindow.innerWidth**/( i/nPartPerDim + 0.5/nPartPerDim );
-        var yPix = /*customWindow.innerHeight**/( j/nPartPerDim + 0.5/nPartPerDim );
-        particles.vertices.push(new THREE.Vector3(xPix, yPix , 0)); //   i/texSize
+        var xPix = ( i/nPartY + 0.5/nPartY );
+        var yPix = ( j/nPartX + 0.5/nPartX );
+        particles.vertices.push(new THREE.Vector3(xPix, yPix , 0)); 
         }   
     }   
-    var particleMesh = new THREE.ParticleSystem(particles, dispMaterial);
-
+    
+    var particleMesh = new THREE.PointCloud(particles, dispMaterial);
 
     dispScene.add(particleMesh);
-
 
     randScene = new THREE.Scene();
     var randVert = $('#randVert').text();
@@ -237,12 +198,9 @@ function init2() {
         depthWrite: false
     });
 
-
-    var randPlane = new THREE.Mesh(new THREE.PlaneGeometry(customWindow.innerWidth,
+    var randPlane = new THREE.Mesh(new THREE.PlaneBufferGeometry(customWindow.innerWidth,
                                 customWindow.innerHeight), randMaterial);
     randScene.add(randPlane);
-
-
 }
 
 var buffer = 0;

@@ -19,13 +19,11 @@ var triangle,plane;
 var delta = 1.;
 var currTime = 0;
 document.addEventListener( 'mousedown', onDocumentMouseDown, false );
-
-
-
+var showParts;
 init();
 init2();
 animate();
-//var customWindow;
+
 function setRenderType(v) {
 	var bu = v.valueOf();
 	materialShow.uniforms.renderType.value = bu;
@@ -40,7 +38,34 @@ function setScaleOutput(v) {
 	var bu = v.valueOf();
 	materialShow.uniforms.scaleOutput.value = Math.log(bu);
 }
+function resetParts() {
+	renderer.render(randScene, cameraRTT, velTexture[0]);
+	renderer.render(randScene, cameraRTT, posTexture[0]);
+	renderer.render(randScene, cameraRTT, velTexture[1]);
+	renderer.render(randScene, cameraRTT, posTexture[1]);
+	buffer = 0;
+}
 
+function clearObstacles() {
+	renderer.render( sceneMesh, cameraRTT, currMeshTexture, true );
+	renderer.render( sceneMesh, cameraRTT,meshMaskTexture, true);
+}
+
+function resetSims() {
+	materialCompute1.uniforms.currTime.value = 0.;
+	materialCompute2.uniforms.currTime.value = 0.;
+	materialCompute3.uniforms.currTime.value = 0.;	
+	resetParts();
+	clearObstacles();
+}
+function toggleParts() {
+	
+	if (showParts == true ) {
+		showParts = false;
+	} else {
+		showParts = true;
+	}
+}
 function init() {
 
 	container = document.getElementById( 'container' );
@@ -50,10 +75,6 @@ function init() {
 
 	cameraRTT = new THREE.OrthographicCamera( customWindow.innerWidth / - 2, customWindow.innerWidth / 2, customWindow.innerHeight / 2, customWindow.innerHeight / - 2, -1000, 1000 );
 
-	//cameraRTT.position.z = 999;
-	//cameraRTT = new THREE.PerspectiveCamera( 90, window.innerWidth / window.innerHeight, 1, 1000 );
-
-	console.log($('#container'));
 	sceneStep1 = new THREE.Scene();
 	sceneCopy1 = new THREE.Scene();
 	sceneStep2 = new THREE.Scene();
@@ -278,12 +299,8 @@ function init() {
 	}
 };
 materialParticle = new THREE.ShaderMaterial( {
-	/*varying: attributes, uniforms: {tTex: {type:"t", value: rtTexture1 }},*/
-		//vertexShader: document.getElementById( 'vertexParticleShader' ).textContent,
-		//fragmentShader: document.getElementById( 'fragmentParticle' ).textContent,
-
-	} );
-plane = new THREE.PlaneGeometry( customWindow.innerWidth, customWindow.innerHeight );
+} );
+plane = new THREE.PlaneBufferGeometry( customWindow.innerWidth, customWindow.innerHeight );
 triangle = new THREE.CircleGeometry( 2, 5 );
 
 
@@ -336,7 +353,7 @@ sceneParticle.add( quad );
 
 
 renderer = new THREE.WebGLRenderer();
-	//renderer.setViewport(333+customWindow.innerWidth,0333+customWindow.innerHeight);
+
 	renderer.setSize( customWindow.innerWidth, customWindow.innerHeight );
 	renderer.autoClear = false;
 
@@ -359,14 +376,13 @@ renderer = new THREE.WebGLRenderer();
 	
 
 	materialShow.uniforms.scaleOutput.value = Math.log(2.);
-	console.log(sceneMesh);
 	container.appendChild( renderer.domElement );
 
 	stats = new Stats();
 	stats.domElement.style.position = 'absolute';
 	stats.domElement.style.top = '0px';
 	container.appendChild( stats.domElement );
-
+	showParts = true;
 }
 
 function animate() {
@@ -380,19 +396,17 @@ function animate() {
 
 function render() {
 
-	//var time = Date.now() * 0.0015;
 	renderer.clear();
 	if (currTime == 0) {
-		//renderer.render( sceneMesh, cameraRTT, meshMaskTexture, true );
+
 		renderer.render(randScene, cameraRTT, velTexture[0]);
 		renderer.render(randScene, cameraRTT, posTexture[0]);
 		renderer.render(randScene, cameraRTT, velTexture[1]);
 		renderer.render(randScene, cameraRTT, posTexture[1]);
 
 		buffer = 1;
-		console.log("initialising");
 	};
-//renderer.render( sceneModifyMesh, cameraRTT, meshMaskTexture, true );
+
 for (var i = 0; i < 1; i++) {
 	renderer.render( sceneCompute1, cameraRTT, rtTexture1c, true );
 	renderer.render( sceneCompute2, cameraRTT, rtTexture2c, true );
@@ -423,8 +437,6 @@ for (var i = 0; i < 1; i++) {
 
 var a, b;
 
-    //renderer.setViewport(0,0,texSize, texSize);
-
     if (buffer == 1) {
     	buffer = 0;
     	a = 1;
@@ -434,7 +446,7 @@ var a, b;
     	a = 0;
     	b = 1;
     }
-    if (currTime > 0* delta) {
+
     renderer.render( sceneMacro, cameraRTT, rtTextureMacro, true );
 
     velUniforms.velTex.value = velTexture[a];
@@ -448,19 +460,14 @@ var a, b;
 
     renderer.render(posScene, cameraRTT, posTexture[b]);
 
+
     dispUniforms.posTex.value = posTexture[b];
 
-    };
-    //renderer.setViewport(0,0,dispSize.x, dispSize.y);
-
-	// Render full screen quad with generated textur
-	
 	renderer.render( sceneShow, cameraRTT );
-    renderer.render(dispScene, cameraRTT);
-	//triangle.verticesNeedUpdate = true;
-	//renderer.render( sceneParticle, cameraRTT );
 
-
+    if (showParts) {
+    	renderer.render(dispScene, cameraRTT);
+    };
 	materialStep1.uniforms.time.value += delta;
 	materialStep2.uniforms.time.value += delta;
 	materialStep3.uniforms.time.value += delta;
@@ -473,37 +480,27 @@ var a, b;
 
 
 function onDocumentMouseDown( event ) {
-	//var projector = new THREE.Projector();
+
 	var canvas = document.getElementById( 'container' );
 	var xRatio = window.innerWidth/customWindow.innerWidth;
 	var yRatio = window.innerHeight/customWindow.innerHeight;
 	var offsetTop = canvas.offsetTop;
 	var offsetLeft = canvas.offsetLeft;
 	
-	var vector = new THREE.Vector3(
-		( ((event.clientX-0) / window.innerWidth ) * 2 - 1)*xRatio,
-		(- ( (event.clientY) / window.innerHeight  ) * 2  + 1)*yRatio - (offsetTop/3)/yRatio -2,
-		.5 );
 	var vector2 = new THREE.Vector3(
-		( event.clientX / window.innerWidth ) * 2 - 1,
-		- ( event.clientY / window.innerHeight ) * 2 + 1,
+		2. * xRatio * (event.clientX - .5 * window.innerWidth - offsetLeft ) / window.innerWidth ,
+		2. * yRatio * (event.clientY  - offsetTop ) / window.innerHeight - 1,
 		0.5 );	
 
-	console.log(vector);
+	//console.log(vector2);
 
-	// use picking ray since it's an orthographic camera
-	ballSprite = new THREE.Sprite(  );
-	ballSprite.scale.set( 12,12,1 );
-	ballSprite.position.set( 256*vector.x, 64*vector.y, 0 );
-//	sceneParticle.add( ballSprite );	
+	materialModifyMesh.uniforms.x.value = .5 + .5 * vector2.x;
+	materialModifyMesh.uniforms.y.value = .5 - .5 * vector2.y;
 
-materialModifyMesh.uniforms.x.value = .5 + .5*vector.x;
-materialModifyMesh.uniforms.y.value = .5 + .5*vector.y;
+	renderer.clear();
+	renderer.render( sceneModifyMesh, cameraRTT, currMeshTexture, true );
+	renderer.render( sceneCopyMesh, cameraRTT,meshMaskTexture, true);
+	renderer.render( sceneShow, cameraRTT );
 
-
-renderer.clear();
-renderer.render( sceneModifyMesh, cameraRTT, currMeshTexture, true );
-renderer.render( sceneCopyMesh, cameraRTT,meshMaskTexture, true);
-renderer.render( sceneShow, cameraRTT );
 
 }
